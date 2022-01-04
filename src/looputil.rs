@@ -1,5 +1,4 @@
 use std::time::{Instant, Duration};
-use std::intrinsics::nontemporal_store;
 
 pub fn nanos_per_frame(fps: &f64) -> Duration {
     Duration::from_secs( (1000000000f64 / fps ) as u64)
@@ -42,7 +41,7 @@ impl Timing {
         match self {
             Timing::ASAP => true,
             Timing::Framerate { last_called_at, desired_framerate } => (Instant::now().duration_since(last_called_at.clone()) >= nanos_per_frame(desired_framerate)),
-            Timing::SpecificTime { last_called_at, desired_wait_time } => (Instant::now().duration_since(last_called_at.clone()) >= desired_wait_time),
+            Timing::SpecificTime { last_called_at, desired_wait_time } => (Instant::now().duration_since(last_called_at.clone()) >= desired_wait_time.clone()),
             Timing::Never => false
         }
     }

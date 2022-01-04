@@ -9,7 +9,7 @@ pub struct Binder<'a> {
 }
 
 impl<'a> Binder<'a> {
-    pub fn construct(mut self) -> (wgpu::BindGroupLayoutEntry, Vec<wgpu::BindGroupEntry>) {
+    pub fn construct(mut self) -> (wgpu::BindGroupLayoutEntry, Vec<wgpu::BindGroupEntry<'a>>) {
         let mut groupentries = vec![];
         while !self.resources.is_empty() {
             groupentries.push(wgpu::BindGroupEntry{
