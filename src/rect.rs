@@ -1,16 +1,18 @@
-use winit::dpi::PhysicalSize;
+use winit::dpi::{PhysicalSize, PhysicalPosition};
 use bytemuck::*;
-use crate::dpi::PhysicalPosition;
 
 /// A point in the worldspace, in world coordinates.
 
 #[repr(C)]
-#[derive(Debug,Copy,Clone,bytemuck::Pod,bytemuck::Zeroable)]
+#[derive(Debug,Copy,Clone)]
 pub struct WorldPoint {
     x: f32,
     y: f32,
     z: f32,
 }
+
+unsafe impl bytemuck::Zeroable for WorldPoint {}
+unsafe impl bytemuck::Pod for WorldPoint {}
 
 impl WorldPoint {
     pub fn new(x: f32, y: f32, z: f32) -> Self {
@@ -48,12 +50,16 @@ impl std::ops::Mul for WorldPoint {
 }
 
 /// A Rectangle meausred in WGPU world units.
+#[repr(C)]
+#[derive(Debug,Copy,Clone)]
 pub struct WorldRectangle {
     pub pos: WorldPoint,
     pub width: f32,
     pub height: f32,
 }
 
+unsafe impl bytemuck::Zeroable for WorldRectangle {}
+unsafe impl bytemuck::Pod for WorldRectangle {}
 impl WorldRectangle {
 
     pub fn pos_in(&self, point: &WorldPoint) -> WorldPoint {
@@ -74,10 +80,15 @@ impl WorldRectangle {
 }
 
 /// A point on the screen, in pixels.
+#[repr(C)]
+#[derive(Debug,Copy,Clone)]
 pub struct ScreenPoint {
     x: u32,
     y: u32,
 }
+
+unsafe impl bytemuck::Zeroable for ScreenPoint {}
+unsafe impl bytemuck::Pod for ScreenPoint {}
 
 impl ScreenPoint {
     pub fn new(x: u32, y: u32) -> Self {
@@ -103,11 +114,16 @@ impl ScreenPoint {
 }
 
 /// A Rectangle meausred in screen pixels
+#[repr(C)]
+#[derive(Debug,Copy,Clone)]
 pub struct ScreenRectangle {
     pub pos: ScreenPoint,
     pub width: u32,
     pub height: u32,
 }
+
+unsafe impl bytemuck::Zeroable for ScreenRectangle {}
+unsafe impl bytemuck::Pod for ScreenRectangle{}
 
 impl ScreenRectangle {
 

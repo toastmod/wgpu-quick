@@ -1,5 +1,6 @@
 # wgpu-quick
-My personal toolkit for writing `wgpu` real quick.
+My personal toolkit for writing `wgpu` real quick.\
+Alot of it is based on [sotrh's wgpu tutorial.](https://sotrh.github.io/learn-wgpu/)
 
 # Included
 - `looputil`: Event Loop and render timing helpers.

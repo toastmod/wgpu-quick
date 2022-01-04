@@ -28,10 +28,10 @@ impl Timing {
         match self {
             Timing::ASAP => {}
             Timing::Framerate { last_called_at, desired_framerate } => {
-                *last_rendered_at = Instant::now();
+                *last_called_at = Instant::now();
             }
             Timing::SpecificTime { last_called_at, desired_wait_time } => {
-                *last_rendered_at = Instant::now();
+                *last_called_at = Instant::now();
             }
             Timing::Never => {}
         }

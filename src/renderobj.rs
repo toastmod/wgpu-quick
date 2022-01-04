@@ -1,6 +1,4 @@
 use crate::rect::WorldPoint;
-use crate::wgpustate::State;
-use crate::modelbuffers::Model;
 use wgpu::Buffer;
 use crate::State;
 use crate::model::Model;
@@ -19,7 +17,7 @@ pub struct RenderObject<'a> {
     pub model: DrawInput,
 }
 
-impl RenderObject {
+impl<'a> RenderObject<'a> {
     pub fn render_this<'a>(&self, render_pass: &mut wgpu::RenderPass<'a>) {
         render_pass.set_pipeline(self.pipeline);
         render_pass.set_bind_group(0, self.bind_group, &[]);

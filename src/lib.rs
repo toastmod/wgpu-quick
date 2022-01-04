@@ -24,6 +24,7 @@ pub struct State {
 }
 
 impl State {
+    /// Initialize a `wgpu` state.\
     pub async fn new(window: &winit::window::Window, backend: wgpu::Backends) -> Self {
         let size = window.inner_size();
         let instance = wgpu::Instance::new(backend);
@@ -38,13 +39,13 @@ impl State {
             .await
             .expect("Failed to find an appropriate adapter");
 
-        // Create the logical device and command queue
+       let swapchain_format = surface.get_preferred_format(&adapter).unwrap();
+
         let (device, queue) = adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
                     label: None,
                     features: wgpu::Features::empty(),
-                    // Make sure we use the texture resolution limits from the adapter, so we can support images the size of the swapchain.
                     limits: wgpu::Limits::downlevel_webgl2_defaults()
                         .using_resolution(adapter.limits()),
                 },
