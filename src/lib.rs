@@ -4,6 +4,7 @@ pub mod texture;
 pub mod rect;
 pub mod model;
 pub mod looputil;
+pub mod uniforms;
 
 #[cfg(test)]
 mod tests {
