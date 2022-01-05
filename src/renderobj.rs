@@ -3,6 +3,7 @@ use wgpu::Buffer;
 use crate::State;
 use crate::model::Model;
 use std::ops::Range;
+use std::sync::Arc;
 
 pub enum DrawInput {
     Model{my_model: Model, instances: Range<u32> },
@@ -10,17 +11,17 @@ pub enum DrawInput {
 }
 
 /// Data for a renderable object.
-pub struct RenderObject<'a> {
-    pub pipeline: &'a wgpu::RenderPipeline,
+pub struct RenderObject {
+    pub pipeline: Arc<wgpu::RenderPipeline>,
     pub layout_group: u32,
-    pub bind_group: &'a wgpu::BindGroup,
+    pub bind_group: Arc<wgpu::BindGroup>,
     pub model: DrawInput,
 }
 
-impl<'a> RenderObject<'a> {
-    pub fn render_this(&'a self, render_pass: &mut wgpu::RenderPass<'a>) {
-        render_pass.set_pipeline(self.pipeline);
-        render_pass.set_bind_group(0, self.bind_group, &[]);
+impl RenderObject {
+    pub fn render_this<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>) {
+        render_pass.set_pipeline(self.pipeline.as_ref());
+        render_pass.set_bind_group(0, self.bind_group.as_ref(), &[]);
 
         match &self.model {
              DrawInput::NonIndexed {verticies, instances} => {
