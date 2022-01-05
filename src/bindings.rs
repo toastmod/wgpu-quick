@@ -1,4 +1,5 @@
 use std::num::NonZeroU32;
+use std::sync::Arc;
 
 pub struct Binder<'a> {
     pub binding: u32,
@@ -29,7 +30,7 @@ impl<'a> Binder<'a> {
 
 pub struct Bindings {
     pub bind_layout: wgpu::BindGroupLayout,
-    pub bind_groups: Vec<wgpu::BindGroup>,
+    pub bind_groups: Vec<Arc<wgpu::BindGroup>>,
 }
 
 impl Bindings {
@@ -39,7 +40,7 @@ impl Bindings {
         let layout_size = bindings.len();
 
         let mut layout_entries: Vec<wgpu::BindGroupLayoutEntry> = vec![];
-        let mut bind_groups: Vec<wgpu::BindGroup> = vec![];
+        let mut bind_groups: Vec<Arc<wgpu::BindGroup>> = vec![];
 
         //              [binding][group]
         let mut bgents: Vec<Vec<wgpu::BindGroupEntry<'a>>> = vec![];
@@ -63,11 +64,11 @@ impl Bindings {
             for binding_index in 0..layout_size {
                 entries.push(bgents[binding_index].remove(0));
             }
-            bind_groups.push(device.create_bind_group(&wgpu::BindGroupDescriptor{
+            bind_groups.push(Arc::new(device.create_bind_group(&wgpu::BindGroupDescriptor{
                 label: None,
                 layout: &bind_layout,
                 entries: entries.as_slice()
-            }))
+            })))
         }
 
         Self {
