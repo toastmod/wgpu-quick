@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use crate::looputil::Timing;
 use crate::State;
 use crate::texture::Texture;
@@ -60,15 +60,16 @@ pub trait Program {
     type Shared;
     type Proxy;
 
-    fn init_renderer(&mut self, global: &mut Self::Shared, state: &State) -> ProgRenderer {
-        unimplemented!()
+    fn init(&mut self, global: &mut Self::Shared, state: &State) -> ProgRenderer {
+        ProgRenderer{
+            texture: RendererTexture::Surface,
+            loadop: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+            render_timing: Timing::Framerate { last_called_at: Instant::now(), desired_framerate: 30.0 },
+            update_timing: Timing::Never,
+        }
     }
 
-    fn init(&mut self, global: &mut Self::Shared, state: &State, renderer: &mut ProgRenderer) -> ProgReturn {
-        unimplemented!()
-    }
-
-    fn on_event(&mut self, global: &mut Self::Shared, state: &State, renderer: &mut ProgRenderer, event: winit::event::Event<Self::Proxy>) -> ProgReturn {
+    fn on_event(&mut self, global: &mut Self::Shared, state: &State, renderer: &mut ProgRenderer, event: &winit::event::Event<Self::Proxy>) -> ProgReturn {
         unimplemented!()
     }
 

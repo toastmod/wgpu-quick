@@ -1,3 +1,5 @@
+use winit::dpi::PhysicalSize;
+
 pub mod bindings;
 pub mod renderobj;
 pub mod texture;
@@ -77,6 +79,12 @@ impl State {
             queue
         }
 
+    }
+
+    pub fn resize(&mut self, size: PhysicalSize<u32>) {
+        self.config.width = size.width;
+        self.config.height = size.height;
+        self.surface.configure(&self.device, &self.config);
     }
 
 
