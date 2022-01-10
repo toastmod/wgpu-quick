@@ -1,7 +1,13 @@
 use std::time::{Instant, Duration};
 
+pub enum TimerStatus {
+    Ready,
+    Waiting(Duration),
+    Ignore,
+}
+
 pub fn nanos_per_frame(fps: &f64) -> Duration {
-    Duration::from_secs( (1000000000f64 / fps ) as u64)
+    Duration::from_nanos( (1000000000f64 / fps ) as u64)
 }
 
 /// Defines the timing for when a function should be called next.
@@ -36,13 +42,30 @@ impl Timing {
         }
     }
 
-    /// Returns true if ready to call.
-    pub fn check(&self) -> bool {
+    /// Check the wait time left.
+    pub fn check(&self) -> TimerStatus {
         match self {
-            Timing::ASAP => true,
-            Timing::Framerate { last_called_at, desired_framerate } => (Instant::now().duration_since(last_called_at.clone()) >= nanos_per_frame(desired_framerate)),
-            Timing::SpecificTime { last_called_at, desired_wait_time } => (Instant::now().duration_since(last_called_at.clone()) >= desired_wait_time.clone()),
-            Timing::Never => false
+            Timing::ASAP => TimerStatus::Ready,
+            Timing::Framerate { last_called_at, desired_framerate } => {
+                let elapsed = last_called_at.elapsed();
+                let delta_per_frame = nanos_per_frame(desired_framerate);
+
+                if (elapsed >= delta_per_frame){
+                    TimerStatus::Ready
+                }else{
+                    TimerStatus::Waiting(delta_per_frame-elapsed)
+                }
+            },
+            Timing::SpecificTime { last_called_at, desired_wait_time } => {
+                let elapsed = last_called_at.elapsed();
+
+                if (&elapsed >= desired_wait_time){
+                    TimerStatus::Ready
+                }else{
+                    TimerStatus::Waiting(*desired_wait_time - elapsed)
+                }
+            },
+            Timing::Never => TimerStatus::Ignore
         }
     }
 }

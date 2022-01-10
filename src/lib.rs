@@ -5,6 +5,8 @@ pub mod rect;
 pub mod model;
 pub mod looputil;
 pub mod uniforms;
+pub mod runtime;
+pub mod utils;
 
 #[cfg(test)]
 mod tests {
@@ -26,6 +28,7 @@ pub struct State {
 
 impl State {
     /// Initialize a `wgpu` state.\
+    /// TODO: allow setting specific adapter parameters.
     pub async fn new(window: &winit::window::Window, backend: wgpu::Backends) -> Self {
         let size = window.inner_size();
         let instance = wgpu::Instance::new(backend);
@@ -75,4 +78,6 @@ impl State {
         }
 
     }
+
+
 }

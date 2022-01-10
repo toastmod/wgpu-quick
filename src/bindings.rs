@@ -36,8 +36,15 @@ pub struct Bindings {
 impl Bindings {
     pub fn make<'a>(device: &wgpu::Device, mut bindings: Vec<Binder<'a>>) -> Self {
 
-        let num_groups = bindings[0].resources.len();
         let layout_size = bindings.len();
+
+        let num_groups = {
+            if layout_size == 0 {
+                0
+            } else {
+                bindings[0].resources.len()
+            }
+        };
 
         let mut layout_entries: Vec<wgpu::BindGroupLayoutEntry> = vec![];
         let mut bind_groups: Vec<Arc<wgpu::BindGroup>> = vec![];
@@ -72,6 +79,7 @@ impl Bindings {
         }
 
         Self {
+
             bind_layout,
             bind_groups
         }
