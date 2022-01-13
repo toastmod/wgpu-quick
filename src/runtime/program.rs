@@ -23,6 +23,20 @@ pub struct ProgRenderer {
 
 impl ProgRenderer {
 
+    pub fn new(
+            texture: RendererTexture,
+            loadop: wgpu::LoadOp<wgpu::Color>,
+            render_timing: Timing,
+            update_timing: Timing
+    )-> Self {
+        Self {
+            texture,
+            loadop,
+            render_timing,
+            update_timing
+        }
+    }
+
     pub fn set_update_rate(&mut self, timing: Timing) {
         self.update_timing = timing;
     }
@@ -60,13 +74,14 @@ pub trait Program {
     type Shared;
     type Proxy;
 
-    fn init(&mut self, global: &mut Self::Shared, state: &State) -> ProgRenderer {
-        ProgRenderer{
-            texture: RendererTexture::Surface,
-            loadop: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
-            render_timing: Timing::Framerate { last_called_at: Instant::now(), desired_framerate: 30.0 },
-            update_timing: Timing::Never,
-        }
+    fn instantiate(global: &mut Self::Shared, state: &State) -> (Box<dyn Program<Shared = Self::Shared, Proxy = Self::Proxy>>, ProgRenderer)
+    where Self: Sized
+    {
+        unimplemented!()
+    }
+
+    fn init(&mut self, global: &mut Self::Shared, state: &State, renderer: &mut ProgRenderer) {
+        unimplemented!()
     }
 
     fn on_event(&mut self, global: &mut Self::Shared, state: &State, renderer: &mut ProgRenderer, event: &winit::event::Event<Self::Proxy>) -> ProgReturn {

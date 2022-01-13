@@ -12,16 +12,20 @@ pub enum DrawInput {
 
 /// Data for a renderable object.
 pub struct RenderObject {
+    /// The pipeline to render with.
     pub pipeline: Arc<wgpu::RenderPipeline>,
-    pub layout_group: u32,
-    pub bind_group: Arc<wgpu::BindGroup>,
+    /// The bind groups in order of compatible `BindGroupLayouts` in the `PipelineLayout`.
+    pub bind_groups: Vec<Arc<wgpu::BindGroup>>,
+    /// The model buffers or indexing data for the GPU
     pub model: DrawInput,
 }
 
 impl RenderObject {
     pub fn render_this<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>) {
         render_pass.set_pipeline(self.pipeline.as_ref());
-        render_pass.set_bind_group(0, self.bind_group.as_ref(), &[]);
+        for i in 0..self.bind_groups.len() {
+            render_pass.set_bind_group(i as u32, self.bind_groups[i].as_ref(), &[]);
+        }
 
         match &self.model {
              DrawInput::NonIndexed {verticies, instances} => {

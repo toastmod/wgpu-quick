@@ -2,20 +2,16 @@ use winit::event::Event;
 use winit::event_loop::EventLoop;
 use winit::window::Window;
 use crate::looputil::TimerStatus;
-use crate::runtime::program::{Program, RendererTexture};
+use crate::runtime::program::{Program, ProgRenderer, RendererTexture};
 use crate::State;
 
 pub mod program;
 
-pub fn start<Shared: 'static,Proxy>(window: Window, event_loop: EventLoop<Proxy>, mut state: State, mut global: Shared, programs: &mut Vec<Box<dyn Program<Shared = Shared, Proxy = Proxy>>>) {
+pub fn start<Shared: 'static,Proxy>(window: Window, event_loop: EventLoop<Proxy>, mut state: State, mut global: Shared, mut progs_rends: Vec<(Box<dyn Program<Shared=Shared, Proxy=Proxy>>, ProgRenderer)>) {
 
-    let mut progs_rends = vec![];
-
-    // run program inits and fetch renderers
-    while !programs.is_empty() {
-        let mut prog = programs.pop().unwrap();
-        let mut rend = prog.init(&mut global, &state);
-        progs_rends.push((prog, rend));
+    // run program inits
+    for (prog, rend) in &mut progs_rends {
+        prog.init(&mut global, &state, rend);
     }
 
     event_loop.run(move |event ,target ,control_flow|{
@@ -47,7 +43,6 @@ pub fn start<Shared: 'static,Proxy>(window: Window, event_loop: EventLoop<Proxy>
                 });
 
                 for (prog, rend) in &mut progs_rends {
-
                     {
                         // TODO: allow more renderpass customization
                         let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor{
