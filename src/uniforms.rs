@@ -1,3 +1,4 @@
+use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut, Index, IndexMut, Range};
 use std::sync::Arc;
 use wgpu::util::DeviceExt;
@@ -94,4 +95,38 @@ impl<T: bytemuck::Zeroable + bytemuck::Pod> UniformChunk<T> {
         queue.write_buffer(self.buffer.as_ref(), 0, bytemuck::cast_slice(self.data.as_slice()))
     }
 
+}
+
+
+/// Creates a uniform in GPU memory but does not store a copy on the CPU side.\
+/// Basically uses wgpu uniforms as they're made, not much abstraction besides the type argument.
+pub struct UniformRemote<T: bytemuck::Zeroable + bytemuck::Pod> {
+    buffer: Arc<wgpu::Buffer>,
+    size: usize,
+    datatype: PhantomData<T>
+}
+
+impl<T: bytemuck::Zeroable + bytemuck::Pod> UniformRemote<T> {
+    pub fn new(device: &wgpu::Device, data: &[T]) -> Self {
+        let buffer = Arc::new(device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
+            label: None,
+            contents: bytemuck::cast_slice(data),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST
+        }));
+        Self {
+            buffer,
+            size: std::mem::size_of::<T>() * data.len(),
+            datatype: Default::default()
+        }
+    }
+
+    pub fn get_buffer(&self) -> &wgpu::Buffer {
+        self.buffer.as_ref()
+    }
+
+    /// Writes to the buffer, the offset is sized as if indexing `&[T]`\
+    /// `queue.write_buffer()` Fails here if the size of `data` overruns the size of the buffer.
+    pub fn write(&self, queue: &wgpu::Queue, index_offset: usize, data: &[T]) {
+        queue.write_buffer(self.buffer.as_ref(), (index_offset * std::mem::size_of::<T>()) as u64, bytemuck::cast_slice(data))
+    }
 }
