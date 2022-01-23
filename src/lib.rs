@@ -20,6 +20,7 @@ mod tests {
 }
 
 pub struct State {
+    pub scalefactor: f64,
     pub instance: wgpu::Instance,
     pub config: wgpu::SurfaceConfiguration,
     pub surface: wgpu::Surface,
@@ -33,6 +34,7 @@ impl State {
     /// TODO: allow setting specific adapter parameters.
     pub async fn new(window: &winit::window::Window, backend: wgpu::Backends) -> Self {
         let size = window.inner_size();
+        let scalefactor = window.scale_factor();
         let instance = wgpu::Instance::new(backend);
         let surface = unsafe { instance.create_surface(&window) };
         let adapter = instance
@@ -71,6 +73,7 @@ impl State {
         surface.configure(&device, &config);
 
         Self {
+            scalefactor,
             instance,
             config,
             surface,
@@ -82,6 +85,8 @@ impl State {
     }
 
     pub fn resize(&mut self, size: PhysicalSize<u32>) {
+        // self.config.width = (size.width as f64 * self.scalefactor) as u32;
+        // self.config.height = (size.height as f64 * self.scalefactor) as u32;
         self.config.width = size.width;
         self.config.height = size.height;
         self.surface.configure(&self.device, &self.config);
