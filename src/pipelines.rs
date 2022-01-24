@@ -46,7 +46,7 @@ pub trait Pipeline {
 
     fn fragment_desc<'a>(state: &State, module: &'a wgpu::ShaderModule) -> FragmentDesc<'a>;
 
-    fn pipeline_desc<'a>(state: &State, layout: &'a wgpu::PipelineLayout, fragment: Option<wgpu::FragmentState<'a>>, vertex: wgpu::VertexState<'a>) -> wgpu::RenderPipelineDescriptor<'a>;
+    fn pipeline_desc<'a>(state: &State, layout: Option<&'a wgpu::PipelineLayout>, fragment: Option<wgpu::FragmentState<'a>>, vertex: wgpu::VertexState<'a>) -> wgpu::RenderPipelineDescriptor<'a>;
 }
 
 /// Instantiate a rendering pipeline from a defined `Pipeline` trait.
@@ -69,7 +69,7 @@ pub fn make_pipline<'a, T: Pipeline>(state: &State, bind_group_layouts: &[&'a wg
     let mut fstate_targets: Option<Vec<wgpu::ColorTargetState>> = None;
     let mut targets_unwraped: Vec<wgpu::ColorTargetState>;
 
-    let pipeline = Arc::new(state.device.create_render_pipeline(&T::pipeline_desc(&state, layout.as_ref(), match fstate {
+    let pipeline = Arc::new(state.device.create_render_pipeline(&T::pipeline_desc(&state, Some(layout.as_ref()), match fstate {
         None => None,
         Some (( module, entry_point, mut targets)) => {
 

@@ -9,9 +9,9 @@ use winit::{
     window::Window,
 };
 use wgpu_quick::pipelines::{Pipeline, VertexDesc, FragmentDesc, make_pipline};
-use crate::shader::TrianglePipe;
 use wgpu_quick::renderobj::{RenderObject, DrawInput};
 use std::sync::Arc;
+use crate::shader::TrianglePipe;
 
 async fn run(event_loop: EventLoop<()>, window: Window) {
 
