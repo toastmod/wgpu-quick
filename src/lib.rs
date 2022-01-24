@@ -9,6 +9,7 @@ pub mod looputil;
 pub mod uniforms;
 pub mod runtime;
 pub mod utils;
+pub mod pipelines;
 
 #[cfg(test)]
 mod tests {
