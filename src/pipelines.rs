@@ -40,75 +40,36 @@ impl<'a> FragmentDesc<'a> {
 /// a .rs for every .wgsl/.glsl/.spirv file and just make a struct with this trait in it.
 pub trait Pipeline {
 
-    fn shader_src<'a>() -> wgpu::ShaderSource<'a> {
-        unimplemented!()
-    }
+    fn shader_src<'a>(state: &State) -> wgpu::ShaderSource<'a>;
 
-    fn vertex_state<'a>(module: &'a wgpu::ShaderModule) -> VertexDesc<'a> {
-        VertexDesc {
-            module,
-            entry_point: "main",
-            buffers: vec![]
-        }
-    }
+    fn vertex_state<'a>(state: &State, module: &'a wgpu::ShaderModule) -> VertexDesc<'a>;
 
-    fn fragment_desc<'a>(module: &'a wgpu::ShaderModule) ->FragmentDesc<'a> {
-        FragmentDesc::Some {
-            module,
-            entry_point: "main",
-            targets: vec![
-                wgpu::ColorTargetState {
-                    format: wgpu::TextureFormat::R8Unorm,
-                    blend: None,
-                    write_mask: wgpu::ColorWrites::all()
-                }
-            ]
-        }
-    }
+    fn fragment_desc<'a>(state: &State, module: &'a wgpu::ShaderModule) -> FragmentDesc<'a>;
 
-    fn pipeline_desc<'a>(layout: &'a wgpu::PipelineLayout, fragment: Option<wgpu::FragmentState<'a>>, vertex: wgpu::VertexState<'a>) -> wgpu::RenderPipelineDescriptor<'a> {
-        wgpu::RenderPipelineDescriptor {
-            label: None,
-            layout: Some(layout),
-            vertex,
-            primitive: wgpu::PrimitiveState{
-                topology: Default::default(),
-                strip_index_format: None,
-                front_face: Default::default(),
-                cull_mode: None,
-                unclipped_depth: false,
-                polygon_mode: Default::default(),
-                conservative: false
-            },
-            depth_stencil: None,
-            multisample: Default::default(),
-            fragment,
-            multiview: None
-        }
-    }
+    fn pipeline_desc<'a>(state: &State, layout: &'a wgpu::PipelineLayout, fragment: Option<wgpu::FragmentState<'a>>, vertex: wgpu::VertexState<'a>) -> wgpu::RenderPipelineDescriptor<'a>;
 }
 
 /// Instantiate a rendering pipeline from a defined `Pipeline` trait.
-pub fn make_pipline<'a, T: Pipeline>(device: &wgpu::Device, bind_group_layouts: &[&'a wgpu::BindGroupLayout], push_constant_ranges: &'a [wgpu::PushConstantRange]) -> ShaderPipeline {
+pub fn make_pipline<'a, T: Pipeline>(state: &State, bind_group_layouts: &[&'a wgpu::BindGroupLayout], push_constant_ranges: &'a [wgpu::PushConstantRange]) -> ShaderPipeline {
 
-    let module = Arc::new(device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+    let module = Arc::new(state.device.create_shader_module(&wgpu::ShaderModuleDescriptor {
         label: None,
-        source: T::shader_src()
+        source: T::shader_src(&state)
     }));
 
-    let layout = Arc::new(device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{
+    let layout = Arc::new(state.device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{
         label: None,
         bind_group_layouts,
         push_constant_ranges
     }));
 
-    let mut vstate = T::vertex_state(module.as_ref());
-    let fstate = T::fragment_desc(module.as_ref()).unpack();
+    let mut vstate = T::vertex_state(&state, module.as_ref());
+    let fstate = T::fragment_desc(&state,module.as_ref()).unpack();
 
     let mut fstate_targets: Option<Vec<wgpu::ColorTargetState>> = None;
     let mut targets_unwraped: Vec<wgpu::ColorTargetState>;
 
-    let pipeline = Arc::new(device.create_render_pipeline(&T::pipeline_desc(layout.as_ref(), match fstate {
+    let pipeline = Arc::new(state.device.create_render_pipeline(&T::pipeline_desc(&state, layout.as_ref(), match fstate {
         None => None,
         Some (( module, entry_point, mut targets)) => {
 
