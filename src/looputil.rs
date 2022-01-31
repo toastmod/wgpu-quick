@@ -2,7 +2,7 @@ use std::time::{Instant, Duration};
 
 pub enum TimerStatus {
     Ready,
-    Waiting(Duration),
+    Waiting(Instant),
     Ignore,
 }
 
@@ -17,10 +17,10 @@ pub enum Timing {
     ASAP,
 
     /// Called at a certain framerate.
-    Framerate{last_called_at: Instant, desired_framerate: f64},
+    Framerate{next_call: Instant, desired_framerate: f64},
 
     /// Wait a specific `Duration`
-    SpecificTime{last_called_at: Instant, desired_wait_time: Duration },
+    SpecificTime{next_call: Instant, desired_wait_time: Duration },
 
     /// This will not call the function.
     Never,
@@ -28,15 +28,35 @@ pub enum Timing {
 
 impl Timing {
 
+    pub fn framerate(fps: f64) -> Self {
+        Timing::Framerate {
+            next_call: Instant::now() + nanos_per_frame(&fps),
+            desired_framerate: fps
+        }
+    }
+
+    pub fn rate(rate: Duration) -> Self {
+        Timing::SpecificTime {
+            next_call: Instant::now() + rate,
+            desired_wait_time: rate
+        }
+    }
+
     /// Resets the timer.
     pub fn reset(&mut self) {
         match self {
             Timing::ASAP => {}
-            Timing::Framerate { last_called_at, desired_framerate } => {
-                *last_called_at = Instant::now();
+            // Timing::Framerate { last_called_at, desired_framerate } => {
+            //     *last_called_at = Instant::now();
+            // }
+            // Timing::SpecificTime { last_called_at, desired_wait_time } => {
+            //     *last_called_at = Instant::now();
+            // }
+            Timing::SpecificTime { next_call, desired_wait_time } => {
+                *next_call = Instant::now() + *desired_wait_time;
             }
-            Timing::SpecificTime { last_called_at, desired_wait_time } => {
-                *last_called_at = Instant::now();
+            Timing::Framerate { next_call, desired_framerate } => {
+                *next_call = Instant::now() + nanos_per_frame(desired_framerate);
             }
             Timing::Never => {}
         }
@@ -46,23 +66,19 @@ impl Timing {
     pub fn check(&self) -> TimerStatus {
         match self {
             Timing::ASAP => TimerStatus::Ready,
-            Timing::Framerate { last_called_at, desired_framerate } => {
-                let elapsed = last_called_at.elapsed();
-                let delta_per_frame = nanos_per_frame(desired_framerate);
-
-                if (elapsed >= delta_per_frame){
+            Timing::Framerate { next_call, desired_framerate } => {
+                if (next_call <= &Instant::now()){
                     TimerStatus::Ready
                 }else{
-                    TimerStatus::Waiting(delta_per_frame-elapsed)
+                    // TimerStatus::Waiting(delta_per_frame-elapsed)
+                    TimerStatus::Waiting(next_call.clone())
                 }
             },
-            Timing::SpecificTime { last_called_at, desired_wait_time } => {
-                let elapsed = last_called_at.elapsed();
-
-                if (&elapsed >= desired_wait_time){
+            Timing::SpecificTime { next_call, desired_wait_time } => {
+                if (next_call <= &Instant::now()){
                     TimerStatus::Ready
                 }else{
-                    TimerStatus::Waiting(*desired_wait_time - elapsed)
+                    TimerStatus::Waiting(next_call.clone())
                 }
             },
             Timing::Never => TimerStatus::Ignore

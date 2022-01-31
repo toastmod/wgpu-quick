@@ -75,7 +75,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
         }
     };
 
-    let mut framerate = Timing::Framerate { last_called_at: Instant::now(), desired_framerate: 60.0 };
+    let mut framerate = Timing::framerate(60.0);
 
     event_loop.run(move |event, _, control_flow| {
 
