@@ -9,7 +9,10 @@ pub mod looputil;
 pub mod uniforms;
 pub mod runtime;
 pub mod utils;
+#[macro_use]
+pub mod init;
 pub mod pipelines;
+// pub mod init;
 
 #[cfg(test)]
 mod tests {

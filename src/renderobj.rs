@@ -39,4 +39,19 @@ impl RenderObject {
         }
 
     }
+
+
+    pub fn render_with_draw_args<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>, vertices: Range<u32>, instances: Range<u32>) {
+        // attempting to draw no instances results in (exit code: 0xc000041d)
+        if instances.start != instances.end {
+            render_pass.set_pipeline(self.pipeline.as_ref());
+            for i in 0..self.bind_groups.len() {
+                render_pass.set_bind_group(i as u32, self.bind_groups[i].as_ref(), &[]);
+            }
+
+            render_pass.draw(vertices.clone(), instances.clone());
+        }else{
+            println!("skipping draw, no instances");
+        }
+    }
 }

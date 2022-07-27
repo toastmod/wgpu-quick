@@ -88,18 +88,11 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                     WindowEvent::Resized(size) => {
                         state.resize(size);
                     }
-                    WindowEvent::Moved(_) => {}
+
                     WindowEvent::CloseRequested => {
                         *control_flow = ControlFlow::Exit
                     }
-                    WindowEvent::Destroyed => {}
-                    WindowEvent::DroppedFile(_) => {}
-                    WindowEvent::HoveredFile(_) => {}
-                    WindowEvent::HoveredFileCancelled => {}
-                    WindowEvent::ReceivedCharacter(_) => {}
-                    WindowEvent::Focused(_) => {}
-                    WindowEvent::KeyboardInput { .. } => {}
-                    WindowEvent::ModifiersChanged(_) => {}
+
                     WindowEvent::CursorMoved { device_id, position, modifiers } => {
                         (*mouse_pos)[0] = (position.x as f32)/(state.config.width as f32);
                         (*mouse_pos)[1] = (position.y as f32)/(state.config.height as f32);
@@ -114,15 +107,8 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                             TimerStatus::Ignore => {}
                         }
                     }
-                    WindowEvent::CursorEntered { .. } => {}
-                    WindowEvent::CursorLeft { .. } => {}
-                    WindowEvent::MouseWheel { .. } => {}
-                    WindowEvent::MouseInput { .. } => {}
-                    WindowEvent::TouchpadPressure { .. } => {}
-                    WindowEvent::AxisMotion { .. } => {}
-                    WindowEvent::Touch(_) => {}
-                    WindowEvent::ScaleFactorChanged { .. } => {}
-                    WindowEvent::ThemeChanged(_) => {}
+
+                    _=>{}
                 }
             }
             Event::RedrawRequested(_) => {
@@ -161,25 +147,6 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
 fn main() {
     let event_loop = EventLoop::new();
     let window = winit::window::Window::new(&event_loop).unwrap();
-    #[cfg(not(target_arch = "wasm32"))]
-        {
-            // Temporarily avoid srgb formats for the swapchain on the web
-            pollster::block_on(run(event_loop, window));
-        }
-    #[cfg(target_arch = "wasm32")]
-        {
-            std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-            console_log::init().expect("could not initialize logger");
-            use winit::platform::web::WindowExtWebSys;
-            // On wasm, append the canvas to the document body
-            web_sys::window()
-                .and_then(|win| win.document())
-                .and_then(|doc| doc.body())
-                .and_then(|body| {
-                    body.append_child(&web_sys::Element::from(window.canvas()))
-                        .ok()
-                })
-                .expect("couldn't append canvas to document body");
-            wasm_bindgen_futures::spawn_local(run(event_loop, window));
-        }
+    
+    wgpu_quick::init::start_wgpu!(window, event_loop);
 }

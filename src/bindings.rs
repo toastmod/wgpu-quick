@@ -68,6 +68,7 @@ impl Bindings {
         // index flipped
         for _ in 0..num_groups {
             let mut entries: Vec<wgpu::BindGroupEntry> = vec![];
+            println!("layout size: {}",layout_size);
             for binding_index in 0..layout_size {
                 entries.push(bgents[binding_index].remove(0));
             }
