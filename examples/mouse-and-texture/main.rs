@@ -18,12 +18,17 @@ use std::time::Instant;
 
 async fn run(event_loop: EventLoop<()>, window: Window) {
 
+    // Initialize wgpu state for any backend
     let mut state = wgpu_quick::State::new(&window, wgpu::Backends::all()).await;
 
+    // Load a texture from an image file.
     let texture = Texture::from_bytes(&state.device, &state.queue, include_bytes!("kermit.png")).expect("Could not load texture");
 
+    // Create a uniform variable to represent mouse position.
     let mut mouse_pos = Uniform::new(&state.device, [0.0,0.0]);
 
+    // Create a set of bindings for mouse position, texture view, and sampler.
+    // Binders must all have the same number of resources or else the program will panic.
     let bindings = Bindings::make(&state.device, vec![
        Binder {
            binding: 0,
@@ -64,8 +69,10 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
         }
     ]);
 
+    // Load a pipeline that uses the binding's layout.
     let mousetex_pipe= make_pipline::<MouseTexPipeline>(&state, &[&bindings.bind_layout], &[]);
 
+    // Create a render object that uses the pipeline with our compatible binding.
     let mousetex_obj = RenderObject{
         pipeline: Arc::clone(&mousetex_pipe.pipeline),
         bind_groups: vec![Arc::clone(&bindings.bind_groups[0])],
@@ -75,6 +82,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
         }
     };
 
+    // Set a framerate.
     let mut framerate = Timing::framerate(60.0);
 
     event_loop.run(move |event, _, control_flow| {
@@ -86,6 +94,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
             Event::WindowEvent { window_id, event } => {
                 match event {
                     WindowEvent::Resized(size) => {
+                        // Change configuration on resize.
                         state.resize(size);
                     }
 
@@ -94,13 +103,19 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                     }
 
                     WindowEvent::CursorMoved { device_id, position, modifiers } => {
+
+                        // Calculate mouse position in screen units
                         (*mouse_pos)[0] = (position.x as f32)/(state.config.width as f32);
                         (*mouse_pos)[1] = (position.y as f32)/(state.config.height as f32);
 
+                        // Check if it is time to render a frame.
                         match framerate.check() {
                             TimerStatus::Ready => {
+                                // Reset the framerate timer.
                                 framerate.reset();
+                                // Sync the uniform variable with the local memory.
                                 mouse_pos.sync(&state.queue);
+                                //  Request a redraw event.
                                 window.request_redraw();
                             }
                             TimerStatus::Waiting(_) => {}
@@ -112,6 +127,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                 }
             }
             Event::RedrawRequested(_) => {
+                // Get the surface texture and create a render pass.
                 let frame = state.surface
                     .get_current_texture()
                     .expect("Failed to acquire next swap chain texture");
@@ -120,6 +136,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                     .create_view(&wgpu::TextureViewDescriptor::default());
                 let mut encoder =
                     state.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+                
                 {
                     let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                         label: None,
@@ -133,9 +150,12 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                         }],
                         depth_stencil_attachment: None,
                     });
+
+                    // Write from the RenderObject to the RenderPass.
                     mousetex_obj.render_this(&mut rpass);
                 }
 
+                // Submit and present.
                 state.queue.submit(Some(encoder.finish()));
                 frame.present();
             }
@@ -147,6 +167,6 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
 fn main() {
     let event_loop = EventLoop::new();
     let window = winit::window::Window::new(&event_loop).unwrap();
-    
-    wgpu_quick::init::start_wgpu!(window, event_loop);
+    // Start wgpu for your platform. 
+    wgpu_quick::init::start_wgpu!(window, event_loop, run);
 }

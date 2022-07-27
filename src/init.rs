@@ -1,12 +1,15 @@
 use winit::event_loop;
 
+
+/// Starts wgpu either with `pollster::block_on` or by adding a canvas element in WASM.
+/// (Specifying canvas name coming soon)
 #[macro_export]
 macro_rules! start_wgpu {
-    ($window:expr, $event_loop:expr) => {
+    ($window:expr, $event_loop:expr, $runfn:expr) => {
     #[cfg(not(target_arch = "wasm32"))]
     {
         // Temporarily avoid srgb formats for the swapchain on the web
-        pollster::block_on(run($event_loop, $window));
+        pollster::block_on($runfn($event_loop, $window));
     }
     #[cfg(target_arch = "wasm32")]
     {
@@ -22,7 +25,7 @@ macro_rules! start_wgpu {
                     .ok()
             })
             .expect("couldn't append canvas to document body");
-        wasm_bindgen_futures::spawn_local(run($event_loop, $window));
+        wasm_bindgen_futures::spawn_local($runfn($event_loop, $window));
     }
     };
 }

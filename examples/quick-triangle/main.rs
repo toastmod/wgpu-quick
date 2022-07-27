@@ -15,10 +15,13 @@ use crate::shader::TrianglePipe;
 
 async fn run(event_loop: EventLoop<()>, window: Window) {
 
+    // Initialize wgpu for any backend.
     let mut state = wgpu_quick::State::new(&window, wgpu::Backends::all()).await;
 
+    // Create a new pipeline instance.
     let triangle_pipe = make_pipline::<TrianglePipe>(&state, &[], &[]);
 
+    // Make a RenderObject that uses this pipeline.
     let triangle_obj = RenderObject{
         pipeline: Arc::clone(&triangle_pipe.pipeline),
         bind_groups: vec![],
@@ -28,6 +31,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
         }
     };
 
+    // Begin the event loop.
     event_loop.run(move |event, _, control_flow| {
 
         // Referencing `state` in this closure moves the ownership.
@@ -38,19 +42,27 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                 event: WindowEvent::Resized(size),
                 ..
             } => {
-                // Reconfigure the surface with the new size
+                // Reconfigure the surface with the new size.
                 state.resize(size);
             }
+
+            // Only render on redraw request events.
             Event::RedrawRequested(_) => {
+                // Fetch the surface texture. 
                 let frame = state.surface
                     .get_current_texture()
                     .expect("Failed to acquire next swap chain texture");
+
+                // Create a view from the surface texture.
                 let view = frame
                     .texture
                     .create_view(&wgpu::TextureViewDescriptor::default());
+
+                // Begin a render pass with a command encoder.
                 let mut encoder =
                     state.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
                 {
+
                     let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                         label: None,
                         color_attachments: &[wgpu::RenderPassColorAttachment {
@@ -63,9 +75,12 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                         }],
                         depth_stencil_attachment: None,
                     });
+
+                    // Let the RenderObject write to the RenderPass
                     triangle_obj.render_this(&mut rpass);
                 }
 
+                // Finalize and submit the commands, present the frame.
                 state.queue.submit(Some(encoder.finish()));
                 frame.present();
             }
@@ -81,6 +96,6 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
 fn main() {
     let event_loop = EventLoop::new();
     let window = winit::window::Window::new(&event_loop).unwrap();
-
-    wgpu_quick::init::start_wgpu!(window, event_loop);
+    // Start wgpu for your platform.
+    wgpu_quick::init::start_wgpu!(window, event_loop, run);
 }
