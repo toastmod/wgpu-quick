@@ -8,7 +8,6 @@ macro_rules! start_wgpu {
     ($window:expr, $event_loop:expr, $runfn:expr) => {
     #[cfg(not(target_arch = "wasm32"))]
     {
-        // Temporarily avoid srgb formats for the swapchain on the web
         pollster::block_on($runfn($event_loop, $window));
     }
     #[cfg(target_arch = "wasm32")]
