@@ -8,15 +8,15 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::Window,
 };
-use wgpu_quick::pipelines::{Pipeline, VertexDesc, FragmentDesc, make_pipline};
+use wgpu_quick::{pipelines::{Pipeline, VertexDesc, FragmentDesc, make_pipline}};
 use wgpu_quick::renderobj::{RenderObject, DrawInput};
 use std::sync::Arc;
 use crate::shader::TrianglePipe;
 
-async fn run(event_loop: EventLoop<()>, window: Window) {
+async fn run(event_loop: EventLoop<()>, window: &Window) {
 
     // Initialize wgpu for any backend.
-    let mut state = wgpu_quick::State::new(&window, wgpu::Backends::all()).await;
+    let mut state = wgpu_quick::State::new_winit(window, wgpu::Backends::all()).await;
 
     // Create a new pipeline instance.
     let triangle_pipe = make_pipline::<TrianglePipe>(&state, &[], &[]);
@@ -97,5 +97,5 @@ fn main() {
     let event_loop = EventLoop::new();
     let window = winit::window::Window::new(&event_loop).unwrap();
     // Start wgpu for your platform.
-    wgpu_quick::init::start_wgpu!(window, event_loop, run);
+    wgpu_quick::init::start_wgpu!(&window, event_loop, run);
 }
