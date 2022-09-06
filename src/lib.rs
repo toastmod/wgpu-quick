@@ -67,9 +67,9 @@ struct RWH {
     handle: raw_window_handle::RawWindowHandle
 }
 
-unsafe impl HasRawWindowHandle for RWH {
+unsafe impl raw_window_handle::HasRawWindowHandle for RWH {
     fn raw_window_handle(&self) -> raw_window_handle::RawWindowHandle {
-        self.handle
+        self.handle.clone()
     }
 }
 
@@ -87,7 +87,7 @@ impl State {
             .await
             .expect("Failed to find an appropriate adapter");
 
-       let swapchain_format = surface.get_preferred_format(&adapter).unwrap();
+        let swapchain_format = surface.get_supported_formats(&adapter)[0];
 
         let (device, queue) = adapter
             .request_device(

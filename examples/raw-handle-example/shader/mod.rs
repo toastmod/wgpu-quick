@@ -1,6 +1,6 @@
 use wgpu_quick::pipelines::{Pipeline, VertexDesc, FragmentDesc};
 use std::ops::Index;
-use wgpu::{ShaderSource, ShaderModule, PipelineLayout, FragmentState, VertexState, RenderPipelineDescriptor};
+use wgpu::{ShaderSource, ShaderModule, PipelineLayout, FragmentState, VertexState, RenderPipelineDescriptor, ColorTargetState};
 use std::borrow::Cow;
 use wgpu_quick::State;
 
@@ -20,10 +20,11 @@ impl Pipeline for TrianglePipe {
     }
 
     fn fragment_desc<'a>(state: &State, module: &'a ShaderModule) -> FragmentDesc<'a> {
+        let colfmt: ColorTargetState = state.config.format.clone().into();
         FragmentDesc::Some {
             module,
             entry_point: "fs_main",
-            targets: vec![state.config.format.clone().into()]
+            targets: vec![Some(colfmt)]
         }
     }
 

@@ -47,7 +47,7 @@ pub fn start<Shared: 'static,Proxy>(window: Window, event_loop: EventLoop<Proxy>
                         // TODO: allow more renderpass customization
                         let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor{
                             label: None,
-                            color_attachments: &[
+                            color_attachments: &[Some(
                                 wgpu::RenderPassColorAttachment{
                                     view: match &rend.texture{
                                         RendererTexture::Surface => &surface_view,
@@ -61,7 +61,7 @@ pub fn start<Shared: 'static,Proxy>(window: Window, event_loop: EventLoop<Proxy>
                                         store: true
                                     }
                                 }
-                            ],
+                        )],
                             depth_stencil_attachment: None
                         });
 

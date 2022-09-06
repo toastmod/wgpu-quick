@@ -1,6 +1,6 @@
 use wgpu_quick::pipelines::{Pipeline, VertexDesc, FragmentDesc};
 use wgpu_quick::State;
-use wgpu::{ShaderSource, ShaderModule, PipelineLayout, FragmentState, VertexState, RenderPipelineDescriptor};
+use wgpu::{ShaderSource, ShaderModule, PipelineLayout, FragmentState, VertexState, RenderPipelineDescriptor, ColorTargetState};
 use std::borrow::Cow;
 
 pub struct MouseTexPipeline;
@@ -18,12 +18,11 @@ impl Pipeline for MouseTexPipeline {
     }
 
     fn fragment_desc<'a>(state: &State, module: &'a ShaderModule) -> FragmentDesc<'a> {
+        let coltgt: ColorTargetState = state.config.format.clone().into();
         FragmentDesc::Some {
             module,
             entry_point: "fs_main",
-            targets: vec![
-                state.config.format.clone().into()
-            ]
+            targets: vec![Some(coltgt)]
         }
     }
 

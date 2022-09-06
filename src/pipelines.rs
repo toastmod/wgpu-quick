@@ -18,13 +18,13 @@ pub enum FragmentDesc<'a> {
     Some {
         module: &'a wgpu::ShaderModule,
         entry_point: &'a str,
-        targets: Vec<wgpu::ColorTargetState>
+        targets: Vec<Option<wgpu::ColorTargetState>>
     }
 }
 
 impl<'a> FragmentDesc<'a> {
 
-    fn unpack(self) -> Option<(&'a wgpu::ShaderModule, &'a str, Option<Vec<wgpu::ColorTargetState>>)> {
+    fn unpack(self) -> Option<(&'a wgpu::ShaderModule, &'a str, Option<Vec<Option<wgpu::ColorTargetState>>>)> {
         match self {
             FragmentDesc::None => None,
             FragmentDesc::Some { module, entry_point, targets } => {
@@ -52,7 +52,7 @@ pub trait Pipeline {
 /// Instantiate a rendering pipeline from a defined `Pipeline` trait.
 pub fn make_pipline<'a, T: Pipeline>(state: &State, bind_group_layouts: &[&'a wgpu::BindGroupLayout], push_constant_ranges: &'a [wgpu::PushConstantRange]) -> ShaderPipeline {
 
-    let module = Arc::new(state.device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+    let module = Arc::new(state.device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: None,
         source: T::shader_src(&state)
     }));
@@ -66,8 +66,8 @@ pub fn make_pipline<'a, T: Pipeline>(state: &State, bind_group_layouts: &[&'a wg
     let mut vstate = T::vertex_state(&state, module.as_ref());
     let fstate = T::fragment_desc(&state,module.as_ref()).unpack();
 
-    let mut fstate_targets: Option<Vec<wgpu::ColorTargetState>> = None;
-    let mut targets_unwraped: Vec<wgpu::ColorTargetState>;
+    let mut fstate_targets: Option<Vec<Option<wgpu::ColorTargetState>>> = None;
+    let mut targets_unwraped: Vec<Option<wgpu::ColorTargetState>>;
 
     let pipeline = Arc::new(state.device.create_render_pipeline(&T::pipeline_desc(&state, Some(layout.as_ref()), match fstate {
         None => None,
@@ -78,7 +78,7 @@ pub fn make_pipline<'a, T: Pipeline>(state: &State, bind_group_layouts: &[&'a wg
             Some(wgpu::FragmentState {
                 module,
                 entry_point,
-                targets: targets_unwraped.as_slice()
+                targets: targets_unwraped.as_slice(),
             })
         }
     }, wgpu::VertexState {
