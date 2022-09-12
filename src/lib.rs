@@ -102,15 +102,17 @@ impl State {
             .await
             .expect("Failed to create device");
 
+        let present_mode = surface.get_supported_modes(&adapter)[0];
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: swapchain_format,
             width: size.width,
             height: size.height,
-            present_mode: wgpu::PresentMode::Mailbox,
+            present_mode,
         };
 
         surface.configure(&device, &config);
+
 
         Self {
             scalefactor,
