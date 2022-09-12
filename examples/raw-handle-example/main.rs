@@ -24,7 +24,7 @@ async fn run() {
     let scalefactor = window.scale_factor();
 
     // Initialize wgpu for any backend, passing in the raw window handle and it's known display proportions.
-    let mut state = wgpu_quick::State::new_raw(handle, size, scalefactor, wgpu::Backends::all()).await;
+    let mut state = wgpu_quick::State::new_raw(handle, size, scalefactor, None, wgpu::Backends::all()).await;
 
     // Create a new pipeline instance.
     let triangle_pipe = make_pipline::<TrianglePipe>(&state, &[], &[]);

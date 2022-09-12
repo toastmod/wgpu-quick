@@ -75,7 +75,7 @@ unsafe impl raw_window_handle::HasRawWindowHandle for RWH {
 
 impl State {
 
-    async fn _new(instance: wgpu::Instance, surface: wgpu::Surface, size: PhysicalSize<u32>, scalefactor: f64) -> Self {
+    async fn _new(instance: wgpu::Instance, surface: wgpu::Surface, size: PhysicalSize<u32>, scalefactor: f64, preferred_mode: Option<wgpu::PresentMode>) -> Self {
         // request adapter
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -102,12 +102,17 @@ impl State {
             .await
             .expect("Failed to create device");
 
+        let present_mode = match preferred_mode {
+            Some(p) => p,
+            None => surface.get_supported_modes(&adapter)[0],
+        };
+
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: swapchain_format,
             width: size.width,
             height: size.height,
-            present_mode: wgpu::PresentMode::Mailbox,
+            present_mode,
         };
 
         surface.configure(&device, &config);
@@ -125,26 +130,26 @@ impl State {
 
     /// Initialize a `wgpu` state from a winit window.\
     /// TODO: allow setting specific adapter parameters.
-    pub async fn new_winit(window: &winit::window::Window, backend: wgpu::Backends) -> Self {
+    pub async fn new_winit(window: &winit::window::Window, preferred_mode: Option<wgpu::PresentMode>, backend: wgpu::Backends) -> Self {
 
         let size = window.inner_size();
         let scalefactor = window.scale_factor();
         let instance = wgpu::Instance::new(backend);
         let surface = unsafe { instance.create_surface(window) };
 
-        Self::_new(instance, surface, size, scalefactor).await
+        Self::_new(instance, surface, size, scalefactor, preferred_mode).await
 
     }
 
     /// Initialize a `wgpu` state from a raw window handle with window size and scale factor.\
     /// TODO: allow setting specific adapter parameters.
-    pub async fn new_raw(handle: raw_window_handle::RawWindowHandle, win_size: (u32,u32), scalefactor: f64, backend: wgpu::Backends) -> Self {
+    pub async fn new_raw(handle: raw_window_handle::RawWindowHandle, win_size: (u32,u32), scalefactor: f64, preferred_mode: Option<wgpu::PresentMode>, backend: wgpu::Backends) -> Self {
 
         let size = PhysicalSize::new(win_size.0,win_size.1);
         let instance = wgpu::Instance::new(backend);
         let surface = unsafe { instance.create_surface(&RWH {handle}) };
-
-        Self::_new(instance, surface, size, scalefactor).await
+        
+        Self::_new(instance, surface, size, scalefactor, preferred_mode).await
 
     }
 
@@ -154,6 +159,40 @@ impl State {
         self.config.width = size.width;
         self.config.height = size.height;
         self.surface.configure(&self.device, &self.config);
+    }
+
+    /// Creates a render pass from minimal arguments.
+    pub fn quick_render_pass(&self, custom_frame: Option<(wgpu::SurfaceTexture, wgpu::TextureView)>, clear_color: wgpu::Color,f: &mut dyn FnMut(&mut wgpu::RenderPass)) {
+        let (frame, view) = match custom_frame {
+            Some(fv)=> fv,
+            None => {
+                let f = self.surface.get_current_texture().expect("Failed to aquire next swapchain texture.");
+                let v = f.texture.create_view(&wgpu::TextureViewDescriptor::default());
+                (f,v)
+            },
+        };
+        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+
+        {
+            let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor{
+                label: None,
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &view,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(clear_color),
+                        store: true,
+                    },
+                })],
+                depth_stencil_attachment: None,
+            });
+
+            f(&mut rpass);
+
+        }
+        self.queue.submit(Some(encoder.finish()));
+        frame.present();
+                
     }
 
 

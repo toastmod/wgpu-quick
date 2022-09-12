@@ -16,7 +16,7 @@ use crate::shader::TrianglePipe;
 async fn run(event_loop: EventLoop<()>, window: &Window) {
 
     // Initialize wgpu for any backend.
-    let mut state = wgpu_quick::State::new_winit(window, wgpu::Backends::all()).await;
+    let mut state = wgpu_quick::State::new_winit(window, None, wgpu::Backends::all()).await;
 
     // Create a new pipeline instance.
     let triangle_pipe = make_pipline::<TrianglePipe>(&state, &[], &[]);
@@ -48,41 +48,9 @@ async fn run(event_loop: EventLoop<()>, window: &Window) {
 
             // Only render on redraw request events.
             Event::RedrawRequested(_) => {
-                // Fetch the surface texture. 
-                let frame = state.surface
-                    .get_current_texture()
-                    .expect("Failed to acquire next swap chain texture");
-
-                // Create a view from the surface texture.
-                let view = frame
-                    .texture
-                    .create_view(&wgpu::TextureViewDescriptor::default());
-
-                // Begin a render pass with a command encoder.
-                let mut encoder =
-                    state.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-                {
-
-                    let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                        label: None,
-                        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                            view: &view,
-                            resolve_target: None,
-                            ops: wgpu::Operations {
-                                load: wgpu::LoadOp::Clear(wgpu::Color::GREEN),
-                                store: true,
-                            },
-                        })],
-                        depth_stencil_attachment: None,
-                    });
-
-                    // Let the RenderObject write to the RenderPass
-                    triangle_obj.render_this(&mut rpass);
-                }
-
-                // Finalize and submit the commands, present the frame.
-                state.queue.submit(Some(encoder.finish()));
-                frame.present();
+                state.quick_render_pass(None, wgpu::Color::GREEN, &mut |rpass|{
+                    triangle_obj.render_this(rpass);
+                });
             }
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,

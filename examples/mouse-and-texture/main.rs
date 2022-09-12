@@ -19,7 +19,7 @@ use std::time::Instant;
 async fn run(event_loop: EventLoop<()>, window: Window) {
 
     // Initialize wgpu state for any backend
-    let mut state = wgpu_quick::State::new_winit(&window, wgpu::Backends::all()).await;
+    let mut state = wgpu_quick::State::new_winit(&window, None, wgpu::Backends::all()).await;
 
     // Load a texture from an image file.
     let texture = Texture::from_bytes(&state.device, &state.queue, include_bytes!("kermit.png")).expect("Could not load texture");
