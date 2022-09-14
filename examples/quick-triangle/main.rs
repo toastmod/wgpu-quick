@@ -31,6 +31,22 @@ async fn run(event_loop: EventLoop<()>, window: &Window) {
         }
     };
 
+    // Initialize the render pass procedure
+    let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+    let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor{
+        label: None,
+        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+            view: &view,
+            resolve_target: None,
+            ops: wgpu::Operations {
+                load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                store: true,
+            },
+        })],
+        depth_stencil_attachment: None,
+    });
+    triangle_obj.render_this(rpass);
+
     // Begin the event loop.
     event_loop.run(move |event, _, control_flow| {
 
@@ -48,9 +64,7 @@ async fn run(event_loop: EventLoop<()>, window: &Window) {
 
             // Only render on redraw request events.
             Event::RedrawRequested(_) => {
-                state.quick_render_pass(None, wgpu::Color::GREEN, &mut |rpass|{
-                    triangle_obj.render_this(rpass);
-                });
+                state.quick_render_pass(None, wgpu::Color::GREEN, pass);
             }
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,

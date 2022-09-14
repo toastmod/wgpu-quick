@@ -4,9 +4,9 @@ use wgpu::{ShaderSource, ShaderModule, PipelineLayout, FragmentState, VertexStat
 use std::borrow::Cow;
 use wgpu_quick::State;
 
-pub struct TrianglePipe;
+pub struct TexPipeline;
 
-impl Pipeline for TrianglePipe {
+impl Pipeline for TexPipeline {
     fn shader_src<'a>(state: &State) -> ShaderSource<'a> {
         ShaderSource::Wgsl(Cow::Borrowed(include_str!("shader.wgsl")))
     }
@@ -31,7 +31,7 @@ impl Pipeline for TrianglePipe {
     fn pipeline_desc<'a>(state: &State, layout: Option<&'a PipelineLayout>, fragment: Option<FragmentState<'a>>, vertex: VertexState<'a>) -> RenderPipelineDescriptor<'a> {
         wgpu::RenderPipelineDescriptor {
             label: None,
-            layout: None,
+            layout,
             vertex,
             primitive: wgpu::PrimitiveState{
                 topology: wgpu::PrimitiveTopology::TriangleList,

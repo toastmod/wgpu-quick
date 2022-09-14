@@ -1,4 +1,7 @@
+use std::rc::Rc;
+
 use raw_window_handle::HasRawWindowHandle;
+use wgpu::{SurfaceTexture, TextureView};
 use winit::{dpi::PhysicalSize};
 
 pub use pollster;
@@ -107,6 +110,7 @@ impl State {
             None => surface.get_supported_modes(&adapter)[0],
         };
 
+
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: swapchain_format,
@@ -116,6 +120,7 @@ impl State {
         };
 
         surface.configure(&device, &config);
+
 
         Self {
             scalefactor,
@@ -159,41 +164,6 @@ impl State {
         self.config.width = size.width;
         self.config.height = size.height;
         self.surface.configure(&self.device, &self.config);
-    }
-
-    /// Creates a render pass from minimal arguments.
-    pub fn quick_render_pass(&self, custom_frame: Option<(wgpu::SurfaceTexture, wgpu::TextureView)>, clear_color: wgpu::Color,f: &mut dyn FnMut(&mut wgpu::RenderPass)) {
-        let (frame, view) = match custom_frame {
-            Some(fv)=> fv,
-            None => {
-                let f = self.surface.get_current_texture().expect("Failed to aquire next swapchain texture.");
-                let v = f.texture.create_view(&wgpu::TextureViewDescriptor::default());
-                (f,v)
-            },
-        };
-        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-
-        {
-            let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor{
-                label: None,
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &view,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(clear_color),
-                        store: true,
-                    },
-                })],
-                depth_stencil_attachment: None,
-            });
-
-            f(&mut rpass);
-
-        }
-        self.queue.submit(Some(encoder.finish()));
-        frame.present();
-                
-    }
-
+    }    
 
 }
