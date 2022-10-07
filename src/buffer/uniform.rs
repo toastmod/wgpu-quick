@@ -3,6 +3,7 @@ use std::ops::{Deref, DerefMut, Index, IndexMut, Range};
 use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
+/// A smart pointer that synchronizes a uniform buffer.
 pub struct Uniform<T: bytemuck::Zeroable + bytemuck::Pod> {
     buffer: Arc<wgpu::Buffer>,
     data: T,
@@ -45,7 +46,7 @@ impl<T: bytemuck::Zeroable + bytemuck::Pod> Uniform<T> {
     }
 }
 
-/// Creates a uniform that can be uploaded to in sized chunks, from any index in the data to any index in the uniform.
+/// Creates a uniform that can be buffered to in sized chunks, from any index in the data to any index in the uniform.
 pub struct UniformChunk<T: bytemuck::Zeroable + bytemuck::Pod> {
     buffer: Arc<wgpu::Buffer>,
     data: Vec<T>,
@@ -130,3 +131,4 @@ impl<T: bytemuck::Zeroable + bytemuck::Pod> UniformRemote<T> {
         queue.write_buffer(self.buffer.as_ref(), (index_offset * std::mem::size_of::<T>()) as u64, bytemuck::cast_slice(data))
     }
 }
+

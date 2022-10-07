@@ -12,9 +12,9 @@ use std::sync::Arc;
 use crate::shader::MouseTexPipeline;
 use wgpu_quick::texture::Texture;
 use wgpu_quick::bindings::{Bindings, Binder};
-use wgpu_quick::uniforms::Uniform;
 use wgpu_quick::looputil::{Timing, TimerStatus};
 use std::time::Instant;
+use wgpu_quick::buffer::uniform::Uniform;
 
 async fn run(event_loop: EventLoop<()>, window: Window) {
 

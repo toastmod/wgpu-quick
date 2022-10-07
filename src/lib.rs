@@ -12,7 +12,7 @@ pub mod texture;
 pub mod rect;
 pub mod model;
 pub mod looputil;
-pub mod uniforms;
+pub mod buffer;
 pub mod runtime;
 pub mod utils;
 #[macro_use]
