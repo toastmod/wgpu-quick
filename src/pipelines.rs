@@ -7,12 +7,14 @@ pub struct ShaderPipeline {
     pub layout: Arc<wgpu::PipelineLayout>,
 }
 
+/// Description for the Vertex Shader
 pub struct VertexDesc<'a> {
     pub module: &'a wgpu::ShaderModule,
     pub entry_point: &'a str,
-    pub buffers: Vec<wgpu::VertexBufferLayout<'a>>
+    pub buffer_layouts: Vec<wgpu::VertexBufferLayout<'a>>,
 }
 
+/// Description for the Fragment Shader
 pub enum FragmentDesc<'a> {
     None,
     Some {
@@ -84,7 +86,7 @@ pub fn make_pipline<'a, T: Pipeline>(state: &State, bind_group_layouts: &[&'a wg
     }, wgpu::VertexState {
         module: vstate.module,
         entry_point: vstate.entry_point,
-        buffers: vstate.buffers.as_slice()
+        buffers: vstate.buffer_layouts.as_slice()
     })));
 
     ShaderPipeline {

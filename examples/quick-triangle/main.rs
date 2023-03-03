@@ -8,7 +8,7 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::Window,
 };
-use wgpu_quick::{pipelines::{Pipeline, VertexDesc, FragmentDesc, make_pipline}};
+use wgpu_quick::{pipelines::{Pipeline, VertexDesc, FragmentDesc, make_pipline}, bindings::Binder};
 use wgpu_quick::renderobj::{RenderObject, DrawInput};
 use std::sync::Arc;
 use crate::shader::TrianglePipe;
@@ -32,20 +32,16 @@ async fn run(event_loop: EventLoop<()>, window: &Window) {
     };
 
     // Initialize the render pass procedure
-    let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-    let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor{
+    let view = state.surface.get_current_texture().unwrap().texture.create_view(&wgpu::TextureViewDescriptor{
         label: None,
-        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-            view: &view,
-            resolve_target: None,
-            ops: wgpu::Operations {
-                load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
-                store: true,
-            },
-        })],
-        depth_stencil_attachment: None,
+        format: Some(state.config.format), 
+        dimension: Some(wgpu::TextureViewDimension::D2),
+        aspect: wgpu::TextureAspect::All,
+        base_mip_level: 0,
+        mip_level_count: None,
+        base_array_layer: 0, 
+        array_layer_count: None, 
     });
-    triangle_obj.render_this(rpass);
 
     // Begin the event loop.
     event_loop.run(move |event, _, control_flow| {
@@ -64,7 +60,20 @@ async fn run(event_loop: EventLoop<()>, window: &Window) {
 
             // Only render on redraw request events.
             Event::RedrawRequested(_) => {
-                state.quick_render_pass(None, wgpu::Color::GREEN, pass);
+                let mut encoder = state.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+                let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor{
+                    label: None,
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &view,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                            store: true,
+                        },
+                    })],
+                    depth_stencil_attachment: None,
+                });
+                triangle_obj.render_this(&mut rpass);
             }
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,

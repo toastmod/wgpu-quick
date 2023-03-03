@@ -13,7 +13,7 @@ impl Pipeline for MouseTexPipeline {
         VertexDesc {
             module,
             entry_point: "vs_main",
-            buffers: vec![]
+            buffer_layouts: vec![],
         }
     }
 

@@ -5,3 +5,17 @@ pub struct Model {
     pub index_format: wgpu::IndexFormat,
     pub num_indices: u32
 }
+
+impl Model {
+    /// Use raw obj text file data
+    pub fn from_raw_obj(data: &[u8]) -> Self {
+        let obj = obj::raw::parse_obj(data).expect("Model data could not be parsed!");
+
+        Self {
+            vertex_buffer: todo!(),
+            index_buffer: todo!(),
+            index_format: todo!(),
+            num_indices: todo!(),
+        }
+    }
+}

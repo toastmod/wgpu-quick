@@ -12,14 +12,14 @@ use std::sync::Arc;
 use crate::shader::TexPipeline;
 use wgpu_quick::texture::Texture;
 use wgpu_quick::bindings::{Bindings, Binder};
-use wgpu_quick::uniforms::Uniform;
+use wgpu_quick::buffer::uniform::Uniform;
 use wgpu_quick::looputil::{Timing, TimerStatus};
 use std::time::Instant;
 
 async fn run(event_loop: EventLoop<()>, window: Window) {
 
     // Initialize wgpu state for any backend
-    let mut state = wgpu_quick::State::new_winit(&window, wgpu::Backends::all()).await;
+    let mut state = wgpu_quick::State::new_winit(&window, None, wgpu::Backends::all()).await;
 
     // Load a texture from an image file.
     let texture = Texture::from_bytes(&state.device, &state.queue, include_bytes!("tree.png")).expect("Could not load texture");

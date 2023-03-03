@@ -13,6 +13,7 @@ raw-window-handle = "0.4.3"
 anyhow = "*"
 image = "0.24.2"
 pollster = "0.2.5"
+obj-rs = {git = "https://github.com/simnalamburt/obj-rs.git"}
 
 [dev-dependencies]
 winit = "*"

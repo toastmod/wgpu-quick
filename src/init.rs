@@ -1,6 +1,3 @@
-use winit::event_loop;
-
-
 /// A macro for start `wgpu` with a winit window and event loop.
 /// Starts `wgpu` either with `pollster::block_on` or by adding a `<canvas>` element in WASM.
 /// (Specifying canvas name coming soon)
