@@ -1,5 +1,3 @@
-use std::ops::DerefMut;
-
 pub enum Initable<'a, T> {
     Null(&'a mut Option<T>),
     Active(&'a mut T)

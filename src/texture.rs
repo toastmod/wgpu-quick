@@ -1,6 +1,8 @@
 use image::GenericImageView;
 use anyhow::*;
 
+use crate::State;
+
 pub struct Texture {
     pub texture: wgpu::Texture,
     pub view: wgpu::TextureView,
@@ -9,8 +11,8 @@ pub struct Texture {
 
 impl Texture {
 
-    pub fn new(device: &wgpu::Device, queue: &wgpu::Queue, width: u32, height: u32) -> Result<Self> {
-        let texture = device.create_texture(&wgpu::TextureDescriptor {
+    pub fn new(state: &State, width: u32, height: u32) -> Result<Self> {
+        let texture = state.device.create_texture(&wgpu::TextureDescriptor {
             label: None,
             size: wgpu::Extent3d {
                 width,
@@ -21,11 +23,12 @@ impl Texture {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &state.config.view_formats,
         });
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
-        let sampler = device.create_sampler(&wgpu::SamplerDescriptor::default());
+        let sampler = state.device.create_sampler(&wgpu::SamplerDescriptor::default());
 
         Ok(Self {
             texture,
@@ -36,17 +39,15 @@ impl Texture {
     }
 
     pub fn from_bytes(
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
+        state: &State,
         bytes: &[u8],
     ) -> Result<Self> {
         let img = image::load_from_memory(bytes)?;
-        Self::from_image(device, queue, &img)
+        Self::from_image(state, &img)
     }
 
     pub fn from_image(
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
+        state: &State,
         img: &image::DynamicImage
     ) -> Result<Self> {
         // texture creation
@@ -61,7 +62,7 @@ impl Texture {
             depth_or_array_layers: 1
         };
 
-        let texture = device.create_texture(
+        let texture = state.device.create_texture(
             &wgpu::TextureDescriptor {
                 label: None,
                 size: texture_size,
@@ -70,10 +71,11 @@ impl Texture {
                 dimension: wgpu::TextureDimension::D2,
                 format: wgpu::TextureFormat::Rgba8UnormSrgb,
                 usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+                view_formats: &state.config.view_formats,
             }
         );
 
-        queue.write_texture(
+        state.queue.write_texture(
             wgpu::ImageCopyTexture {
                 texture: &texture,
                 mip_level: 0,
@@ -93,7 +95,7 @@ impl Texture {
         );
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
-        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+        let sampler = state.device.create_sampler(&wgpu::SamplerDescriptor {
             label: None,
             address_mode_u: wgpu::AddressMode::ClampToEdge,
             address_mode_v: wgpu::AddressMode::ClampToEdge,

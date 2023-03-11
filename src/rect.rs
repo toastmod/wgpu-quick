@@ -1,5 +1,4 @@
 use winit::dpi::{PhysicalSize, PhysicalPosition};
-use bytemuck::*;
 
 /// A point in the worldspace, in world coordinates.
 

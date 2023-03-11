@@ -6,7 +6,7 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::Window,
 };
-use wgpu_quick::{pipelines::{Pipeline, VertexDesc, FragmentDesc, make_pipline}};
+use wgpu_quick::{pipelines::{Pipeline, VertexDesc, FragmentDesc, make_pipline}, State, Backends};
 use wgpu_quick::renderobj::{RenderObject, DrawInput};
 use std::sync::Arc;
 use crate::shader::TexPipeline;
@@ -19,10 +19,10 @@ use std::time::Instant;
 async fn run(event_loop: EventLoop<()>, window: Window) {
 
     // Initialize wgpu state for any backend
-    let mut state = wgpu_quick::State::new_winit(&window, None, wgpu::Backends::all()).await;
+    let mut state = State::new_winit(&window, None, Backends::ALL).await.expect("Could not create wgpu surface!");
 
     // Load a texture from an image file.
-    let texture = Texture::from_bytes(&state.device, &state.queue, include_bytes!("tree.png")).expect("Could not load texture");
+    let texture = Texture::from_bytes(&state, include_bytes!("tree.png")).expect("Could not load texture");
 
     // Create a uniform variable to represent mouse position.
     let mut mouse_pos = Uniform::new(&state.device, [0.0,0.0]);
@@ -65,7 +65,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
         pipeline: Arc::clone(&mousetex_pipe.pipeline),
         bind_groups: vec![Arc::clone(&bindings.bind_groups[0])],
         model: DrawInput::NonIndexed {
-            verticies: 0..6,
+            vertices: 0..6,
             instances: 0..1
         }
     };

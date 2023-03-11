@@ -9,6 +9,9 @@ pub struct Model {
 impl Model {
     /// Use raw obj text file data
     pub fn from_raw_obj(data: &[u8]) -> Self {
+
+        unimplemented!();
+
         let obj = obj::raw::parse_obj(data).expect("Model data could not be parsed!");
 
         Self {

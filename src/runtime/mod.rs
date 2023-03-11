@@ -7,7 +7,9 @@ use crate::State;
 
 pub mod program;
 
-pub fn start<Shared: 'static,Proxy>(window: Window, event_loop: EventLoop<Proxy>, mut state: State, mut global: Shared, mut progs_rends: Vec<(Box<dyn Program<Shared=Shared, Proxy=Proxy>>, ProgRenderer)>) {
+pub fn start<Shared: 'static,Proxy>(window: &Window, event_loop: EventLoop<Proxy>, mut state: State, mut global: Shared, mut progs_rends: Vec<(Box<dyn Program<Shared=Shared, Proxy=Proxy>>, ProgRenderer)>) {
+
+    todo!();
 
     // run program inits
     for (prog, rend) in &mut progs_rends {

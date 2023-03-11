@@ -1,13 +1,10 @@
-use crate::rect::WorldPoint;
-use wgpu::Buffer;
-use crate::State;
 use crate::model::Model;
 use std::ops::Range;
 use std::sync::Arc;
 
 pub enum DrawInput {
     Model{my_model: Model, instances: Range<u32> },
-    NonIndexed{ verticies: Range<u32>, instances: Range<u32>},
+    NonIndexed{ vertices: Range<u32>, instances: Range<u32>},
 }
 
 /// Data for a renderable object.
@@ -28,8 +25,8 @@ impl RenderObject {
         }
 
         match &self.model {
-             DrawInput::NonIndexed {verticies, instances} => {
-                render_pass.draw(verticies.clone(), instances.clone());
+             DrawInput::NonIndexed {vertices, instances} => {
+                render_pass.draw(vertices.clone(), instances.clone());
             }
             DrawInput::Model{ my_model, instances} => {
                 render_pass.set_vertex_buffer(0, my_model.vertex_buffer.slice(..));

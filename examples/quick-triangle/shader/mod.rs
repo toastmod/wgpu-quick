@@ -20,18 +20,17 @@ impl Pipeline for TrianglePipe {
     }
 
     fn fragment_desc<'a>(state: &State, module: &'a ShaderModule) -> FragmentDesc<'a> {
-        let coltgt: ColorTargetState = state.config.format.clone().into();
         FragmentDesc::Some {
             module,
             entry_point: "fs_main",
-            targets: vec![Some(coltgt)]
+            targets: vec![Some(state.config.format.clone().into())]
         }
     }
 
     fn pipeline_desc<'a>(state: &State, layout: Option<&'a PipelineLayout>, fragment: Option<FragmentState<'a>>, vertex: VertexState<'a>) -> RenderPipelineDescriptor<'a> {
         wgpu::RenderPipelineDescriptor {
             label: None,
-            layout: None,
+            layout,
             vertex,
             primitive: wgpu::PrimitiveState{
                 topology: wgpu::PrimitiveTopology::TriangleList,

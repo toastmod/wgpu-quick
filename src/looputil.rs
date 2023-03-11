@@ -66,16 +66,16 @@ impl Timing {
     pub fn check(&self) -> TimerStatus {
         match self {
             Timing::ASAP => TimerStatus::Ready,
-            Timing::Framerate { next_call, desired_framerate } => {
-                if (next_call <= &Instant::now()){
+            Timing::Framerate { next_call, desired_framerate: _ } => {
+                if next_call <= &Instant::now() {
                     TimerStatus::Ready
                 }else{
                     // TimerStatus::Waiting(delta_per_frame-elapsed)
                     TimerStatus::Waiting(next_call.clone())
                 }
             },
-            Timing::SpecificTime { next_call, desired_wait_time } => {
-                if (next_call <= &Instant::now()){
+            Timing::SpecificTime { next_call, desired_wait_time: _ } => {
+                if next_call <= &Instant::now() {
                     TimerStatus::Ready
                 }else{
                     TimerStatus::Waiting(next_call.clone())
