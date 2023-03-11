@@ -5,7 +5,7 @@ use wgpu::util::DeviceExt;
 pub use wgpu::vertex_attr_array;
 pub trait VertexType {
     /// The individual formats of each attribute.
-    const attrib_layout: [wgpu::VertexAttribute];
+    const ATTRIB_LAYOUT: [wgpu::VertexAttribute];
 
     /// The description of the Vertex layout for a buffer.
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a>;

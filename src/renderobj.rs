@@ -1,6 +1,3 @@
-use crate::rect::WorldPoint;
-use wgpu::Buffer;
-use crate::State;
 use crate::model::Model;
 use std::ops::Range;
 use std::sync::Arc;

@@ -1,7 +1,4 @@
-use std::rc::Rc;
-
-use raw_window_handle::{HasRawWindowHandle, RawDisplayHandle, UiKitDisplayHandle, AppKitDisplayHandle, OrbitalDisplayHandle, XcbDisplayHandle, WaylandDisplayHandle, DrmDisplayHandle, GbmDisplayHandle, WindowsDisplayHandle, WebDisplayHandle, AndroidDisplayHandle, HaikuDisplayHandle, XlibDisplayHandle};
-use wgpu::{SurfaceTexture, TextureView};
+use raw_window_handle::{RawDisplayHandle, UiKitDisplayHandle, AppKitDisplayHandle, OrbitalDisplayHandle, XcbDisplayHandle, WaylandDisplayHandle, DrmDisplayHandle, GbmDisplayHandle, WindowsDisplayHandle, WebDisplayHandle, AndroidDisplayHandle, HaikuDisplayHandle, XlibDisplayHandle};
 use winit::{dpi::PhysicalSize};
 
 pub use pollster;
