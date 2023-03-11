@@ -18,11 +18,10 @@ impl Pipeline for MouseTexPipeline {
     }
 
     fn fragment_desc<'a>(state: &State, module: &'a ShaderModule) -> FragmentDesc<'a> {
-        let coltgt: ColorTargetState = state.config.format.clone().into();
         FragmentDesc::Some {
             module,
             entry_point: "fs_main",
-            targets: vec![Some(coltgt)]
+            targets: vec![Some(state.config.format.clone().into())]
         }
     }
 

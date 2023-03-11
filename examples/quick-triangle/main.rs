@@ -58,20 +58,25 @@ async fn run(event_loop: EventLoop<()>, window: &Window) {
                     .texture
                     .create_view(&wgpu::TextureViewDescriptor::default());
                 let mut encoder = state.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-                let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor{
-                    label: None,
-                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                        view: &view,
-                        resolve_target: None,
-                        ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
-                            store: true,
-                        },
-                    })],
-                    depth_stencil_attachment: None,
-                });
-                triangle_obj.render_this(&mut rpass);
+                {
+                    let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor{
+                        label: None,
+                        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                            view: &view,
+                            resolve_target: None,
+                            ops: wgpu::Operations {
+                                load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                                store: true,
+                            },
+                        })],
+                        depth_stencil_attachment: None,
+                    });
+                    triangle_obj.render_this(&mut rpass);
+                }
+                state.queue.submit(Some(encoder.finish()));
+                frame.present();
             }
+
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 ..
