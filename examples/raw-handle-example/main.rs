@@ -9,7 +9,7 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::Window, dpi::PhysicalSize,
 };
-use wgpu_quick::{pipelines::{Pipeline, VertexDesc, FragmentDesc, make_pipline}};
+use wgpu_quick::{pipelines::{Pipeline, VertexDesc, FragmentDesc, make_pipline}, Backends, State};
 use wgpu_quick::renderobj::{RenderObject, DrawInput};
 use std::sync::Arc;
 use crate::shader::TrianglePipe;
@@ -24,7 +24,7 @@ async fn run() {
     let scalefactor = window.scale_factor();
 
     // Initialize wgpu for any backend, passing in the raw window handle and it's known display proportions.
-    let mut state = wgpu_quick::State::new_raw(handle, size, scalefactor, None, wgpu::Backends::all()).await;
+    let mut state = State::new_raw(handle, size, scalefactor, None, Backends::ALL).await.expect("Could not create wgpu surface!");
 
     // Create a new pipeline instance.
     let triangle_pipe = make_pipline::<TrianglePipe>(&state, &[], &[]);
@@ -34,7 +34,7 @@ async fn run() {
         pipeline: Arc::clone(&triangle_pipe.pipeline),
         bind_groups: vec![],
         model: DrawInput::NonIndexed {
-            verticies: 0..3,
+            vertices: 0..3,
             instances: 0..1
         }
     };

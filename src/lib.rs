@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use raw_window_handle::HasRawWindowHandle;
+use raw_window_handle::{HasRawWindowHandle, RawDisplayHandle, UiKitDisplayHandle, AppKitDisplayHandle, OrbitalDisplayHandle, XcbDisplayHandle, WaylandDisplayHandle, DrmDisplayHandle, GbmDisplayHandle, WindowsDisplayHandle, WebDisplayHandle, AndroidDisplayHandle, HaikuDisplayHandle, XlibDisplayHandle};
 use wgpu::{SurfaceTexture, TextureView};
 use winit::{dpi::PhysicalSize};
 
@@ -40,33 +40,6 @@ pub struct State {
     pub queue: wgpu::Queue,
 }
 
-// pub enum WindowMethod {
-//     Winit(winit::window::Window),
-//     RawHandle{handle: raw_window_handle::RawWindowHandle, size: (u32,u32), scalefactor: f64}
-// }
-
-// impl WindowMethod {
-//     pub fn from_raw_handle(handle: raw_window_handle::RawWindowHandle, size: (u32,u32), scalefactor: f64) -> Self {
-//         Self::RawHandle { handle, size, scalefactor }
-//     }
-//     pub fn from_winit(window: winit::window::Window) -> Self {
-//         Self::Winit(window)
-//     }
-// }
-
-// unsafe impl HasRawWindowHandle for WindowMethod {
-//     fn raw_window_handle(&self) -> raw_window_handle::RawWindowHandle {
-//         match self {
-//             WindowMethod::Winit(window) => {
-//                 window.raw_window_handle()
-//             },
-//             WindowMethod::RawHandle { handle, size, scalefactor } => {
-//                 handle.clone()
-//             },
-//         }
-//     }
-// }
-
 struct RWH {
     handle: raw_window_handle::RawWindowHandle
 }
@@ -74,6 +47,59 @@ struct RWH {
 unsafe impl raw_window_handle::HasRawWindowHandle for RWH {
     fn raw_window_handle(&self) -> raw_window_handle::RawWindowHandle {
         self.handle.clone()
+    }
+}
+
+
+unsafe impl raw_window_handle::HasRawDisplayHandle for RWH {
+    fn raw_display_handle(&self) -> RawDisplayHandle {
+        match self.handle {
+                raw_window_handle::RawWindowHandle::UiKit(_) => RawDisplayHandle::UiKit(UiKitDisplayHandle::empty()),
+                raw_window_handle::RawWindowHandle::AppKit(_) => RawDisplayHandle::AppKit(AppKitDisplayHandle::empty()),
+                raw_window_handle::RawWindowHandle::Orbital(_) => RawDisplayHandle::Orbital(OrbitalDisplayHandle::empty()),
+                raw_window_handle::RawWindowHandle::Xlib(_) => RawDisplayHandle::Xlib(XlibDisplayHandle::empty()),
+                raw_window_handle::RawWindowHandle::Xcb(_) => RawDisplayHandle::Xcb(XcbDisplayHandle::empty()),
+                raw_window_handle::RawWindowHandle::Wayland(_) => RawDisplayHandle::Wayland(WaylandDisplayHandle::empty()),
+                raw_window_handle::RawWindowHandle::Drm(_) => RawDisplayHandle::Drm(DrmDisplayHandle::empty()),
+                raw_window_handle::RawWindowHandle::Gbm(_) => RawDisplayHandle::Gbm(GbmDisplayHandle::empty()),
+                raw_window_handle::RawWindowHandle::Win32(_) => RawDisplayHandle::Windows(WindowsDisplayHandle::empty()),
+                raw_window_handle::RawWindowHandle::WinRt(_) => RawDisplayHandle::Windows(WindowsDisplayHandle::empty()),
+                raw_window_handle::RawWindowHandle::Web(_) => RawDisplayHandle::Web(WebDisplayHandle::empty()),
+                raw_window_handle::RawWindowHandle::AndroidNdk(_) => RawDisplayHandle::Android(AndroidDisplayHandle::empty()),
+                raw_window_handle::RawWindowHandle::Haiku(_) => RawDisplayHandle::Haiku(HaikuDisplayHandle::empty()),
+                _ => unimplemented!(),
+        }
+    }
+}
+
+
+pub enum Backends {
+    ALL,
+    VULKAN,
+    GL,
+    DX12(wgpu::Dx12Compiler),
+    DX11,
+    METAL,
+    BROWSER_WEBGPU
+}
+
+impl Backends {
+    fn gen_instance_desc(self) -> wgpu::InstanceDescriptor {
+        wgpu::InstanceDescriptor {
+            backends: match &self {
+                Backends::ALL => wgpu::Backends::all(),
+                Backends::VULKAN => wgpu::Backends::VULKAN,
+                Backends::GL => wgpu::Backends::GL,
+                Backends::DX12(_) => wgpu::Backends::DX12,
+                Backends::DX11 => wgpu::Backends::DX11,
+                Backends::METAL => wgpu::Backends::METAL,
+                Backends::BROWSER_WEBGPU => wgpu::Backends::BROWSER_WEBGPU
+            },
+            dx12_shader_compiler: match self {
+                Backends::DX12(compiler) => compiler,
+                _ => wgpu::Dx12Compiler::default()
+            }
+        }
     }
 }
 
@@ -91,7 +117,7 @@ impl State {
             .await
             .expect("Failed to find an appropriate adapter");
 
-        let swapchain_format = surface.get_supported_formats(&adapter)[0];
+        let swapchain_capabilities= surface.get_capabilities(&adapter);
 
         let (device, queue) = adapter
             .request_device(
@@ -108,16 +134,18 @@ impl State {
 
         let present_mode = match preferred_mode {
             Some(p) => p,
-            None => surface.get_supported_modes(&adapter)[0],
+            None => swapchain_capabilities.present_modes[0],
         };
 
 
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: swapchain_format,
+            format: swapchain_capabilities.formats[0],
             width: size.width,
             height: size.height,
             present_mode,
+            alpha_mode: swapchain_capabilities.alpha_modes[0],
+            view_formats: vec![],
         };
 
         surface.configure(&device, &config);
@@ -136,26 +164,26 @@ impl State {
 
     /// Initialize a `wgpu` state from a winit window.\
     /// TODO: allow setting specific adapter parameters.
-    pub async fn new_winit(window: &winit::window::Window, preferred_mode: Option<wgpu::PresentMode>, backend: wgpu::Backends) -> Self {
-
+    pub async fn new_winit(window: &winit::window::Window, preferred_mode: Option<wgpu::PresentMode>, backend: Backends) -> Result<Self, wgpu::CreateSurfaceError> {
+        
         let size = window.inner_size();
         let scalefactor = window.scale_factor();
-        let instance = wgpu::Instance::new(backend);
-        let surface = unsafe { instance.create_surface(window) };
+        let instance = wgpu::Instance::new(backend.gen_instance_desc());
+        let surface = unsafe { instance.create_surface(window) }?;
 
-        Self::_new(instance, surface, size, scalefactor, preferred_mode).await
+        Ok(Self::_new(instance, surface, size, scalefactor, preferred_mode).await)
 
     }
 
     /// Initialize a `wgpu` state from a raw window handle with window size and scale factor.\
     /// TODO: allow setting specific adapter parameters.
-    pub async fn new_raw(handle: raw_window_handle::RawWindowHandle, win_size: (u32,u32), scalefactor: f64, preferred_mode: Option<wgpu::PresentMode>, backend: wgpu::Backends) -> Self {
+    pub async fn new_raw(handle: raw_window_handle::RawWindowHandle, win_size: (u32,u32), scalefactor: f64, preferred_mode: Option<wgpu::PresentMode>, backend: Backends) -> Result<Self, wgpu::CreateSurfaceError> {
 
         let size = PhysicalSize::new(win_size.0,win_size.1);
-        let instance = wgpu::Instance::new(backend);
-        let surface = unsafe { instance.create_surface(&RWH {handle}) };
+        let instance = wgpu::Instance::new(backend.gen_instance_desc());
+        let surface = unsafe { instance.create_surface(&RWH {handle}) }?;
         
-        Self::_new(instance, surface, size, scalefactor, preferred_mode).await
+        Ok(Self::_new(instance, surface, size, scalefactor, preferred_mode).await)
 
     }
 
@@ -166,5 +194,9 @@ impl State {
         self.config.height = size.height;
         self.surface.configure(&self.device, &self.config);
     }    
+
+    pub fn get_capabilities(&self) -> wgpu::SurfaceCapabilities {
+        self.surface.get_capabilities(&self.adapter)
+    }
 
 }
