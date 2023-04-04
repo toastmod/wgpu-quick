@@ -1,4 +1,5 @@
 mod shader;
+mod vertex;
 
 use std::borrow::Cow;
 use winit::{
@@ -12,14 +13,30 @@ use std::sync::Arc;
 use crate::shader::TexPipeline;
 use wgpu_quick::texture::Texture;
 use wgpu_quick::bindings::{Bindings, Binder};
-use wgpu_quick::buffer::uniform::Uniform;
+use wgpu_quick::buffer::{vertex::VertexBuffer, uniform::Uniform};
 use wgpu_quick::looputil::{Timing, TimerStatus};
 use std::time::Instant;
+
+struct Vertex {
+    pos: [f32; 2]
+}
+
+const VERTICES: [Vertex; 6] = [
+        Vertex { pos: [1.0, 1.0]},
+        Vertex { pos : [1.0, -1.0]},
+        Vertex { pos : [-1.0, -1.0]},
+        Vertex { pos : [-1.0, -1.0]},
+        Vertex { pos : [-1.0, 1.0]},
+        Vertex { pos : [1.0, 1.0]},
+];
 
 async fn run(event_loop: EventLoop<()>, window: Window) {
 
     // Initialize wgpu state for any backend
     let mut state = State::new_winit(&window, None, Backends::ALL).await.expect("Could not create wgpu surface!");
+
+    // Create a vertex buffer. 
+    let vertex_buffer = VertexBuffer::new(&state.device, &VERTICES);
 
     // Load a texture from an image file.
     let texture = Texture::from_bytes(&state, include_bytes!("tree.png")).expect("Could not load texture");
@@ -58,7 +75,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
     ]);
 
     // Load a pipeline that uses the binding's layout.
-    let mousetex_pipe = make_pipline::<TexPipeline>(&state, &[&bindings.bind_layout], &[]);
+    let mousetex_pipe = make_pipline::<TexPipeline>(&state, &[&bindings.bind_layout, ], &[]);
 
     // Create a render object that uses the pipeline with our compatible binding.
     let mousetex_obj = RenderObject{

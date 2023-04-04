@@ -15,7 +15,7 @@ impl Pipeline for TexPipeline {
         VertexDesc {
             module,
             entry_point: "vs_main",
-            buffer_layouts: vec![]
+            buffer_layouts: vec![crate::vertex::Vertex::desc()]
         }
     }
 
