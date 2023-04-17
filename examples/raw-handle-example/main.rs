@@ -9,8 +9,7 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::Window, dpi::PhysicalSize,
 };
-use wgpu_quick::{pipelines::{Pipeline, VertexDesc, FragmentDesc, make_pipline}, Backends, State};
-use wgpu_quick::renderobj::{RenderObject, DrawInput};
+use wgpu_quick::{pipelines::{Pipeline, VertexDesc, FragmentDesc, make_pipline}, Backends, State, renderable::{RenderObject, model::Model, Indices}};
 use std::sync::Arc;
 use crate::shader::TrianglePipe;
 
@@ -33,10 +32,7 @@ async fn run() {
     let triangle_obj = RenderObject{
         pipeline: Arc::clone(&triangle_pipe.pipeline),
         bind_groups: vec![],
-        model: DrawInput::NonIndexed {
-            vertices: 0..3,
-            instances: 0..1
-        }
+        model: Model::<()>::empty(Indices::Ranged { vertices: 0..3, instances: 0..1 })
     };
 
     // Fetch the surface texture. 

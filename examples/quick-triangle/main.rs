@@ -8,8 +8,7 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::Window,
 };
-use wgpu_quick::{pipelines::{Pipeline, VertexDesc, FragmentDesc, make_pipline}, bindings::Binder, Backends, State};
-use wgpu_quick::renderobj::{RenderObject, DrawInput};
+use wgpu_quick::{pipelines::{Pipeline, VertexDesc, FragmentDesc, make_pipline}, bindings::Binder, Backends, State, renderable::{model::Model, Indices, RenderObject}};
 use std::sync::Arc;
 use crate::shader::TrianglePipe;
 
@@ -27,10 +26,7 @@ async fn run(event_loop: EventLoop<()>, window: &Window) {
     let triangle_obj = RenderObject{
         pipeline: Arc::clone(&triangle_pipe.pipeline),
         bind_groups: vec![],
-        model: DrawInput::NonIndexed {
-            vertices: 0..3,
-            instances: 0..1
-        }
+        model: Model::<()>::empty(Indices::Ranged { vertices: 0..3, instances: 0..1 }) 
     };
 
     // Begin the event loop.

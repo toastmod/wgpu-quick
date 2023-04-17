@@ -1,3 +1,7 @@
+struct VIn {
+    @location(0) pos: vec2<f32>
+}
+
 struct VOut {
     @location(0) uv: vec2<f32>,
     @builtin(position) pos: vec4<f32>
@@ -5,18 +9,10 @@ struct VOut {
 
 @vertex
 fn vs_main(
-  @builtin(vertex_index) in_vindx: u32
+  vin: VIn  
 ) -> VOut {
-    var pos = array<vec2<f32>, 6>(
-        vec2<f32>(1.0, 1.0),
-        vec2<f32>(1.0, -1.0),
-        vec2<f32>(-1.0, -1.0),
-        vec2<f32>(-1.0, -1.0),
-        vec2<f32>(-1.0, 1.0),
-        vec2<f32>(1.0, 1.0),
-    );
 
-    let p = vec4<f32>(pos[in_vindx], 0.0, 1.0);
+    let p = vec4<f32>(vin.pos, 0.0, 1.0);
     let uv = vec2<f32>((p.x+1.0)/2.0, 1.0-((p.y+1.0)/2.0));
     var res: VOut;
     res.pos = p;

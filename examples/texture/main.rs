@@ -7,27 +7,31 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::Window,
 };
-use wgpu_quick::{pipelines::{Pipeline, VertexDesc, FragmentDesc, make_pipline}, State, Backends};
-use wgpu_quick::renderobj::{RenderObject, DrawInput};
+use wgpu_quick::{pipelines::{Pipeline, VertexDesc, FragmentDesc, make_pipline}, State, Backends, renderable::RenderObject};
+use wgpu_quick::renderable::{model::{Model}, Indices, Renderable};
 use std::sync::Arc;
-use crate::shader::TexPipeline;
 use wgpu_quick::texture::Texture;
 use wgpu_quick::bindings::{Bindings, Binder};
-use wgpu_quick::buffer::{vertex::VertexBuffer, uniform::Uniform};
+use wgpu_quick::buffer::{vertex::*, uniform::Uniform};
 use wgpu_quick::looputil::{Timing, TimerStatus};
 use std::time::Instant;
-
-struct Vertex {
-    pos: [f32; 2]
-}
+use crate::shader::TexPipeline;
+use crate::vertex::Vertex;
 
 const VERTICES: [Vertex; 6] = [
-        Vertex { pos: [1.0, 1.0]},
-        Vertex { pos : [1.0, -1.0]},
-        Vertex { pos : [-1.0, -1.0]},
-        Vertex { pos : [-1.0, -1.0]},
-        Vertex { pos : [-1.0, 1.0]},
-        Vertex { pos : [1.0, 1.0]},
+
+        Vertex { pos : [1.0, 1.0]}, 
+        Vertex { pos : [1.0, -1.0]}, 
+        Vertex { pos : [-1.0, -1.0]}, 
+        Vertex { pos : [-1.0, -1.0]}, 
+        Vertex { pos : [-1.0, 1.0]}, 
+        Vertex { pos : [1.0, 1.0]}, 
+        
+];
+
+const INDICES: [u16; 6] = [
+    0,1,2,
+    3,4,5
 ];
 
 async fn run(event_loop: EventLoop<()>, window: Window) {
@@ -36,7 +40,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
     let mut state = State::new_winit(&window, None, Backends::ALL).await.expect("Could not create wgpu surface!");
 
     // Create a vertex buffer. 
-    let vertex_buffer = VertexBuffer::new(&state.device, &VERTICES);
+    let vertex_buffer = VertexBuffer::<vertex::Vertex>::new(&state.device, &VERTICES);
 
     // Load a texture from an image file.
     let texture = Texture::from_bytes(&state, include_bytes!("tree.png")).expect("Could not load texture");
@@ -75,16 +79,13 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
     ]);
 
     // Load a pipeline that uses the binding's layout.
-    let mousetex_pipe = make_pipline::<TexPipeline>(&state, &[&bindings.bind_layout, ], &[]);
+    let mousetex_pipe = make_pipline::<TexPipeline>(&state, &[&bindings.bind_layout], &[]);
 
     // Create a render object that uses the pipeline with our compatible binding.
     let mousetex_obj = RenderObject{
         pipeline: Arc::clone(&mousetex_pipe.pipeline),
         bind_groups: vec![Arc::clone(&bindings.bind_groups[0])],
-        model: DrawInput::NonIndexed {
-            vertices: 0..6,
-            instances: 0..1
-        }
+        model: Model::from_vertices(&state, &VERTICES, Indices::from_indices(&state, &INDICES, wgpu::IndexFormat::Uint16, 0..1)), 
     };
 
     // Set a framerate.
@@ -120,7 +121,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                                 framerate.reset();
                                 // Sync the uniform variable with the local memory.
                                 mouse_pos.sync(&state.queue);
-                                //  Request a redraw event.
+                                // Request a redraw event.
                                 window.request_redraw();
                             }
                             TimerStatus::Waiting(_) => {}

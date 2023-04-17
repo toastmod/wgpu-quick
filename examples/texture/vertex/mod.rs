@@ -1,8 +1,13 @@
-struct Vertex {
-    pos: [f32; 3]
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct Vertex {
+    pub pos: [f32; 2]
 }
 
-impl wgpu_quick::VertexType for Vertex {
+unsafe impl wgpu_quick::bytemuck::Pod for Vertex {}
+unsafe impl wgpu_quick::bytemuck::Zeroable for Vertex {}
+
+unsafe impl wgpu_quick::buffer::vertex::VertexType for Vertex {
     fn attrib_layout<'a>() -> &'a[wgpu::VertexAttribute] {
         &[
             wgpu::VertexAttribute {
