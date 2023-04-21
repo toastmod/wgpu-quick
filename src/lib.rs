@@ -2,13 +2,11 @@ use raw_window_handle::{RawDisplayHandle, UiKitDisplayHandle, AppKitDisplayHandl
 use winit::{dpi::PhysicalSize};
 
 pub use pollster;
-
 pub mod bytemuck;
+pub mod renderable;
 pub mod bindings;
-pub mod renderobj;
 pub mod texture;
 pub mod rect;
-pub mod model;
 pub mod looputil;
 pub mod buffer;
 pub mod runtime;

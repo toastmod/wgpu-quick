@@ -1,4 +1,4 @@
-use wgpu_quick::pipelines::{Pipeline, VertexDesc, FragmentDesc};
+use wgpu_quick::{pipelines::{Pipeline, VertexDesc, FragmentDesc}, buffer::vertex::VertexType};
 use std::ops::Index;
 use wgpu::{ShaderSource, ShaderModule, PipelineLayout, FragmentState, VertexState, RenderPipelineDescriptor, ColorTargetState};
 use std::borrow::Cow;
@@ -15,7 +15,7 @@ impl Pipeline for TexPipeline {
         VertexDesc {
             module,
             entry_point: "vs_main",
-            buffer_layouts: vec![]
+            buffer_layouts: vec![crate::vertex::Vertex::desc()]
         }
     }
 
@@ -37,7 +37,7 @@ impl Pipeline for TexPipeline {
                 topology: wgpu::PrimitiveTopology::TriangleList,
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Cw,
-                cull_mode: None,
+                cull_mode: Some(wgpu::Face::Back),
                 unclipped_depth: false,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false

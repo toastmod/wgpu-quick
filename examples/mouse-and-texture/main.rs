@@ -6,8 +6,7 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::Window,
 };
-use wgpu_quick::{pipelines::{Pipeline, VertexDesc, FragmentDesc, make_pipline}, State, Backends};
-use wgpu_quick::renderobj::{RenderObject, DrawInput};
+use wgpu_quick::{pipelines::{Pipeline, VertexDesc, FragmentDesc, make_pipline}, State, Backends, renderable::{model::Model, Indices, RenderObject}};
 use std::sync::Arc;
 use crate::shader::MouseTexPipeline;
 use wgpu_quick::texture::Texture;
@@ -76,10 +75,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
     let mousetex_obj = RenderObject{
         pipeline: Arc::clone(&mousetex_pipe.pipeline),
         bind_groups: vec![Arc::clone(&bindings.bind_groups[0])],
-        model: DrawInput::NonIndexed {
-            vertices: 0..3,
-            instances: 0..1
-        }
+        model: Model::<()>::empty(Indices::Ranged { vertices: 0..3, instances: 0..1 })  
     };
 
     // Set a framerate.
