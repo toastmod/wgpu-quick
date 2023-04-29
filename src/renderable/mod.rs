@@ -18,7 +18,6 @@ pub enum Indices {
 
 impl Indices {
     pub fn from_indices<I: crate::bytemuck::Pod + crate::bytemuck::Zeroable>(state: &State, indices: &[I], index_format: wgpu::IndexFormat, instances: Range<u32>) -> Self {
-        println!("Creating index buffer");
         Indices::IndexBuffer {
             index_buffer: state.device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
                 label: None,
@@ -62,14 +61,12 @@ impl RenderObject {
     pub fn render_this<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>) {
         render_pass.set_pipeline(self.pipeline.as_ref());
         for i in 0..self.bind_groups.len() {
-            println!("Setting bindgroup {}", i);
             render_pass.set_bind_group(i as u32, self.bind_groups[i].as_ref(), &[]);
         }
 
         // Set vertices
         match self.model.vertices() {
             Some(vertex_buffer) => {
-                println!("Setting vertex buffer");
                 render_pass.set_vertex_buffer(0, vertex_buffer.slice(..));
             },
             None => {},
@@ -79,11 +76,9 @@ impl RenderObject {
         match &self.model.indices(){
             Indices::IndexBuffer { index_buffer, index_format, num_indices, instances } => {
                 render_pass.set_index_buffer(index_buffer.slice(..), index_format.clone());
-                println!("Drawing indexed");
                 render_pass.draw_indexed(0..num_indices.clone(), 0, instances.clone());
             },
             Indices::Ranged { vertices, instances } => {
-                println!("Drawing ranged");
                 render_pass.draw(vertices.clone(), instances.clone());
             },
         }
@@ -101,7 +96,7 @@ impl RenderObject {
 
             render_pass.draw(vertices.clone(), instances.clone());
         }else{
-            println!("skipping draw, no instances");
+            // !! Skipping draw, no instances.
         }
     }
 }
