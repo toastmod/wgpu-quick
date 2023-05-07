@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-wgpu = "0.15.1"
+wgpu = {path = "../wgpu/wgpu"}
 bytemuck = "1.13.1"
 winit = "0.28.2"
 raw-window-handle = "0.5.1"

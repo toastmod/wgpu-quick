@@ -118,8 +118,8 @@ impl State {
             .request_device(
                 &wgpu::DeviceDescriptor {
                     label: None,
-                    features: wgpu::Features::empty(),
-                    limits: wgpu::Limits::downlevel_webgl2_defaults()
+                    features: wgpu::Features::default() | wgpu::Features::POLYGON_MODE_LINE,
+                    limits: wgpu::Limits::downlevel_defaults()
                         .using_resolution(adapter.limits()),
                 },
                 None,
